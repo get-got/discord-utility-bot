@@ -35,7 +35,7 @@ func init() {
 }
 
 func main() {
-	var err error
+	//var err error
 
 	// Config
 	//loadConfig()
@@ -57,7 +57,7 @@ func main() {
 			select {
 			case <-ticker5m.C:
 				// If bot experiences connection interruption the status will go blank until updated by message, this fixes that
-				updateDiscordPresence()
+				//updateDiscordPresence()
 			case <-ticker1m.C:
 				doReconnect := func() {
 					log.Println(color.YellowString("Closing Discord connections..."))
@@ -72,7 +72,7 @@ func main() {
 						botLogin()
 						log.Println(color.HiGreenString("Reconnected! The bot *should* resume working..."))
 						// Log Status
-						logStatusMessage(logStatusReconnect)
+						//logStatusMessage(logStatusReconnect)
 					}
 				}
 				gate, err := bot.Gateway()
@@ -153,5 +153,5 @@ func botLogin() {
 
 	// Start Presence
 	timeLastUpdated = time.Now()
-	updateDiscordPresence()
+	//updateDiscordPresence()
 }
