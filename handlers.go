@@ -17,7 +17,6 @@ func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 }
 
 func handleMessage(m *discordgo.Message) int64 {
-	// Ignore own messages unless told not to
 	log.Println(m.Content)
 	return -1
 }

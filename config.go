@@ -57,8 +57,9 @@ type configuration struct {
 	// Setup
 	Admins              []string `json:"admins"`                        // optional
 	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
-	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
 	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
+	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
+	//TODO: mapping for channels or servers, whitelist or blacklist, however it will listen
 }
 
 type constStruct struct {

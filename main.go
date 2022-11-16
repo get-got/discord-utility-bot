@@ -38,7 +38,7 @@ func main() {
 	//var err error
 
 	// Config
-	//loadConfig()
+	loadConfig()
 
 	botLogin()
 
@@ -60,27 +60,27 @@ func main() {
 				//updateDiscordPresence()
 			case <-ticker1m.C:
 				doReconnect := func() {
-					log.Println(color.YellowString("Closing Discord connections..."))
+					log.Println(logPrefixDiscord, color.YellowString("Closing Discord connections..."))
 					bot.Client.CloseIdleConnections()
 					bot.CloseWithCode(1001)
 					bot = nil
-					log.Println(color.RedString("Discord connections closed!"))
+					log.Println(logPrefixDiscord, color.RedString("Discord connections closed!"))
 					if config.ExitOnBadConnection {
 						properExit()
 					} else {
-						log.Println(color.GreenString("Logging in..."))
+						log.Println(logPrefixDiscord, color.GreenString("Logging in..."))
 						botLogin()
-						log.Println(color.HiGreenString("Reconnected! The bot *should* resume working..."))
+						log.Println(logPrefixDiscord, color.HiGreenString("Reconnected! The bot *should* resume working..."))
 						// Log Status
 						//logStatusMessage(logStatusReconnect)
 					}
 				}
 				gate, err := bot.Gateway()
 				if err != nil || gate == "" {
-					log.Println(color.HiYellowString("Bot encountered a gateway error: GATEWAY: %s,\tERR: %s", gate, err))
+					log.Println(logPrefixDiscord, color.HiYellowString("Bot encountered a gateway error: GATEWAY: %s,\tERR: %s", gate, err))
 					doReconnect()
 				} else if time.Since(bot.LastHeartbeatAck).Seconds() > 4*60 {
-					log.Println(color.HiYellowString("Bot has not received a heartbeat from Discord in 4 minutes..."))
+					log.Println(logPrefixDiscord, color.HiYellowString("Bot has not received a heartbeat from Discord in 4 minutes..."))
 					doReconnect()
 				}
 			}
@@ -111,39 +111,29 @@ func botLogin() {
 		properExit()
 	}
 	if err != nil {
-		// Newer discordgo throws this error for some reason with Email/Password login
-		if err.Error() != "Unable to fetch discord authentication token. <nil>" {
-			log.Println(logPrefixDiscord, color.HiRedString("Error logging in: %s", err))
-			properExit()
-		}
+		log.Println(logPrefixDiscord, color.HiRedString("Error logging in: %s", err))
+		properExit()
 	}
 
 	// Connect Bot
-	bot.LogLevel = -1 // to ignore dumb wsapi error
 	err = bot.Open()
 	if err != nil {
 		log.Println(logPrefixDiscord, color.HiRedString("Discord login failed:\t%s", err))
 		properExit()
 	}
-	bot.LogLevel = discordgo.LogError // reset
 	bot.ShouldReconnectOnError = true
-	//bot.Client.Timeout = 100000
 
 	// Fetch Bot's User Info
 	user, err = bot.User("@me")
 	if err != nil {
 		user = bot.State.User
 		if user == nil {
-			log.Println(color.HiRedString("Error obtaining user details: %s", err))
+			log.Println(logPrefixDiscord, color.HiRedString("Error obtaining user details: %s", err))
 			loop <- syscall.SIGINT
 		}
 	} else if user == nil {
-		log.Println(color.HiRedString("No error encountered obtaining user details, but it's empty..."))
+		log.Println(logPrefixDiscord, color.HiRedString("No error encountered obtaining user details, but it's empty..."))
 		loop <- syscall.SIGINT
-	} else {
-		log.Println(color.MagentaString("This is a Bot User"))
-		log.Println(color.MagentaString("- Status presence details are limited."))
-		log.Println(color.MagentaString("- Access is restricted to servers you have permission to add the bot to."))
 	}
 
 	// Event Handlers
