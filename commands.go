@@ -146,8 +146,7 @@ func handleCommands() *exrouter.Route {
 
 	// Handler for Command Router
 	bot.AddHandler(func(_ *discordgo.Session, m *discordgo.MessageCreate) {
-		//NOTE: This setup makes it case-insensitive but message content will be lowercase, currently case sensitivity is not necessary.
-		router.FindAndExecute(bot, ".", bot.State.User.ID, messageToLower(m.Message))
+		router.FindAndExecute(bot, ".", bot.State.User.ID, m.Message)
 	})
 
 	return router
