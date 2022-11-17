@@ -26,6 +26,8 @@ type configurationCredentials struct {
 	// Login
 	Token string `json:"token,omitempty"` // required for bot token (this or login)
 	// APIs
+	SpotifyClientID     string `json:"spotifyClientID,omitempty"`     // optional
+	SpotifyClientSecret string `json:"spotifyClientSecret,omitempty"` // optional
 }
 
 //#endregion

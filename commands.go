@@ -120,6 +120,20 @@ func handleCommands() *exrouter.Route {
 	//#region Spotify API
 
 	router.On("sg", func(ctx *exrouter.Context) {
+		logPrefixHere := color.CyanString("[dgrouter:spotifygenres]")
+		if spotifyClient != nil {
+			msg, page, err := spotifyClient.FeaturedPlaylists(spotifyContext)
+			if err != nil {
+				log.Println(logPrefixHere, "Couldn't get featured playlists: %v", err)
+			} else {
+				log.Println(logPrefixHere, msg)
+				for _, playlist := range page.Playlists {
+					log.Println(logPrefixHere, playlist.Name)
+				}
+			}
+		} else {
+			log.Println("Bot is not connected to Spotify...")
+		}
 	}).Cat("Spotify").Alias("spotifygenres", "spotgen").Desc("Spotify genre lookup by url.")
 
 	//#endregion

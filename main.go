@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +11,9 @@ import (
 	"github.com/Necroforger/dgrouter/exrouter"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
+	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 var (
@@ -99,13 +103,52 @@ func main() {
 	log.Println(color.HiRedString("Exiting... "))
 }
 
+var (
+	spotifyClient  *spotify.Client
+	spotifyContext context.Context
+)
+
+func loadAPIs() {
+	logPrefixHere := color.HiMagentaString("[APIs]")
+	// Spotify
+	if config.Credentials.SpotifyClientID != "" && config.Credentials.SpotifyClientSecret != "" {
+		logPrefixHere = color.HiMagentaString("[API:Spotify]")
+
+		log.Println(logPrefixHere, color.MagentaString("Connecting to Spotify API..."))
+		spotifyConfig := &clientcredentials.Config{
+			ClientID:     config.Credentials.SpotifyClientID,
+			ClientSecret: config.Credentials.SpotifyClientSecret,
+			TokenURL:     spotifyauth.TokenURL,
+		}
+		spotifyContext = context.Background()
+		spotifyToken, err := spotifyConfig.Token(spotifyContext)
+		if err != nil {
+			log.Println(logPrefixHere, color.HiRedString("Error getting Spotify token: %s", err))
+		} else {
+			spotifyClient = spotify.New(spotifyauth.New().Client(spotifyContext, spotifyToken))
+			_, err = spotifyClient.GetCategories(spotifyContext)
+			if err != nil {
+				log.Println(logPrefixHere, color.HiRedString("Error connecting to Spotify: %s", err))
+			} else {
+				log.Println(logPrefixHere, color.HiGreenString("Connected to Spotify API!"))
+			}
+		}
+	}
+}
+
 func botLogin() {
+
+	loadAPIs()
 
 	var err error
 
 	if config.Credentials.Token != "" && config.Credentials.Token != placeholderToken {
 		log.Println(logPrefixDiscord, color.GreenString("Connecting to Discord via Token..."))
-		bot, err = discordgo.New("Bot " + config.Credentials.Token)
+		input := config.Credentials.Token
+		if input[:3] != "Bot" {
+			input = "Bot " + input
+		}
+		bot, err = discordgo.New(input)
 	} else {
 		log.Println(logPrefixDiscord, color.HiRedString("No valid credentials for Discord..."))
 		properExit()
