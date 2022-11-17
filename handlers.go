@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -11,8 +12,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
-	if m.EditedTimestamp != discordgo.Timestamp("") {
-		handleMessage(m.Message)
+	if m.EditedTimestamp != nil {
+		if *m.EditedTimestamp != time.Now() {
+			handleMessage(m.Message)
+		}
 	}
 }
 
