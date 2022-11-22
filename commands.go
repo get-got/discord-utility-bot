@@ -78,7 +78,10 @@ func handleCommands() *exrouter.Route {
 	}).Cat("Admin").Alias("reload", "kill").Desc("Exits this program.")
 
 	router.On("reboot", func(ctx *exrouter.Context) {
-
+		logPrefixHere := "[commands:reboot]"
+		dubLog(logPrefixHere, color.HiGreenString, "Attempting to reboot system...")
+		reboot()
+		properExit()
 	}).Cat("Admin").Alias("restart", "shutdown").Desc("Restarts the server.")
 
 	//#endregion
