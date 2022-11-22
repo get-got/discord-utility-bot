@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -22,42 +23,46 @@ func properExit() {
 }
 
 /* logging system:
-[module]
 
+
+implement log leveling
 
 
 */
 
 func dubLog(group string, colorFunc func(string, ...interface{}) string, line string, p ...interface{}) {
 	colorPrefix := group
-	switch group {
+	switch strings.ToLower(group) {
 
-	case "Main":
+	case "main":
 		colorPrefix = color.CyanString("[~]")
 		break
-	case "Debug":
-		colorPrefix = color.HiYellowString("[Debug]")
+	case "debug":
+		colorPrefix = color.HiYellowString("<DEBUG>")
 		break
-	case "Info":
+	case "test":
+		colorPrefix = color.HiYellowString("<TEST>")
+		break
+	case "info":
 		colorPrefix = color.CyanString("[Info]")
 		break
-	case "Version":
+	case "version":
 		colorPrefix = color.HiMagentaString("[Version]")
 		break
 
-	case "Settings":
+	case "settings":
 		colorPrefix = color.GreenString("[Settings]")
 		break
 
-	case "Setup":
+	case "setup":
 		colorPrefix = color.HiGreenString("[Setup]")
 		break
 
-	case "Discord":
+	case "discord":
 		colorPrefix = color.HiBlueString("[Discord]")
 		break
 
-	case "Spotify":
+	case "spotify":
 		colorPrefix = color.HiGreenString("[Spotify]")
 		break
 	}

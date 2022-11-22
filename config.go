@@ -27,6 +27,9 @@ type configurationCredentials struct {
 	// APIs
 	SpotifyClientID     string `json:"spotifyClientID,omitempty"`     // optional
 	SpotifyClientSecret string `json:"spotifyClientSecret,omitempty"` // optional
+	//twitter?
+	//youtube?
+	//flickr?
 }
 
 //#endregion
@@ -53,18 +56,36 @@ func defaultConfiguration() configuration {
 
 type configuration struct {
 	Constants map[string]string `json:"_constants,omitempty"`
+
 	// Required
 	Credentials configurationCredentials `json:"credentials"` // required
+
 	// Setup
 	Admins              []string `json:"admins"`                        // optional
 	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
 	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
 	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
-	//TODO: mapping for channels or servers, whitelist or blacklist, however it will listen
+
+	// Appearance
+	PresenceEnabled bool               `json:"presenceEnabled"`        // optional, defaults
+	PresenceStatus  string             `json:"presenceStatus"`         // optional, defaults
+	PresenceType    discordgo.GameType `json:"presenceType,omitempty"` // optional, defaults
+	EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
+
+	// Channels
+	//All                  *configurationTarget  `json:"all,omitempty"`                  // optional, defaults
+	//AllBlacklistChannels *[]string             `json:"allBlacklistChannels,omitempty"` // optional
+	//AllBlacklistServers  *[]string             `json:"allBlacklistServers,omitempty"`  // optional
+	Servers []configurationTarget `json:"servers"` // required
 }
 
-type constStruct struct {
-	Constants map[string]string `json:"_constants,omitempty"`
+type configurationTarget struct {
+	Server  string    `json:"server,omitempty"`  // used for config.Servers
+	Servers *[]string `json:"servers,omitempty"` // ---> alternative to Server
+
+	OutputProgram  bool `json:"outputProgram,omitempty"`  // optional, defaults
+	OutputErrors   bool `json:"outputErrors,omitempty"`   // optional, defaults
+	OutputCommands bool `json:"outputCommands,omitempty"` // optional, defaults
 }
 
 //#endregion
