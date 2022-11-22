@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Necroforger/dgrouter/exrouter"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
+	"github.com/zmb3/spotify/v2"
 )
 
 // Multiple use messages to save space and make cleaner.
@@ -103,7 +105,113 @@ func handleCommands() *exrouter.Route {
 	router.On("sg", func(ctx *exrouter.Context) {
 		logPrefixHere := color.CyanString("[commands:spotifygenres]")
 		if spotifyClient != nil {
-			msg, page, err := spotifyClient.FeaturedPlaylists(spotifyContext)
+
+			input := ctx.Args[1]
+			input_type := ""
+			if strings.Contains(input, "/artist/") {
+				input_type = "artist"
+			} else if strings.Contains(input, "/album/") {
+				input_type = "album"
+			} else if strings.Contains(input, "/track/") {
+				input_type = "track"
+			} else if strings.Contains(input, "/playlist/") {
+				input_type = "playlist"
+			}
+			if input_type == "" {
+				dubLog(logPrefixHere, color.HiRedString, "Input is not a valid format...")
+			} else {
+				cleanedInput := input
+				if idx := strings.Index(cleanedInput, "?si="); idx != -1 {
+					cleanedInput = cleanedInput[:idx]
+				}
+				blacklist := []string{
+					"spotify:artist:",
+					"spotify:album:",
+					"spotify:track:",
+					"spotify:playlist:",
+					"https://open.spotify.com/artist/",
+					"https://open.spotify.com/album/",
+					"https://open.spotify.com/track/",
+					"https://open.spotify.com/playlist/",
+					"http://open.spotify.com/artist/",
+					"http://open.spotify.com/album/",
+					"http://open.spotify.com/track/",
+					"http://open.spotify.com/playlist/",
+				}
+				for _, phrase := range blacklist {
+					cleanedInput = strings.ReplaceAll(cleanedInput, phrase, "")
+				}
+
+				artist_name := ""
+				artist_url := ""
+				artist_image := ""
+				var genres []string
+				if input_type == "artist" {
+					artist, err := spotifyClient.GetArtist(spotifyContext, spotify.ID(cleanedInput))
+					if err != nil {
+						dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify artist: %s", err)
+					} else {
+						artist_name = artist.Name
+						artist_url = "https://open.spotify.com/artist/" + artist.ID.String()
+						if len(artist.Images) > 0 {
+							artist_image = artist.Images[0].URL
+						}
+						genres = artist.Genres
+					}
+				} else if input_type == "album" {
+					album, err := spotifyClient.GetAlbum(spotifyContext, spotify.ID(cleanedInput))
+					if err != nil {
+						dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify album: %s", err)
+					} else {
+						artist, err := spotifyClient.GetArtist(spotifyContext, album.Artists[0].ID)
+						if err != nil {
+							dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify artist: %s", err)
+						} else {
+							artist_name = artist.Name
+							artist_url = "https://open.spotify.com/artist/" + artist.ID.String()
+							if len(artist.Images) > 0 {
+								artist_image = artist.Images[0].URL
+							}
+							genres = artist.Genres
+							if len(album.Genres) > 0 {
+								genres = album.Genres
+							}
+						}
+					}
+				} else if input_type == "track" {
+					track, err := spotifyClient.GetTrack(spotifyContext, spotify.ID(cleanedInput))
+					if err != nil {
+						dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify album: %s", err)
+					} else {
+						artist, err := spotifyClient.GetArtist(spotifyContext, track.Artists[0].ID)
+						if err != nil {
+							dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify artist: %s", err)
+						} else {
+							artist_name = artist.Name
+							artist_url = "https://open.spotify.com/artist/" + artist.ID.String()
+							if len(artist.Images) > 0 {
+								artist_image = artist.Images[0].URL
+							}
+							genres = artist.Genres
+						}
+					}
+				} else if input_type == "playlist" {
+					//TODO:
+				}
+				dubLog(logPrefixHere, color.HiGreenString, "ARTIST: %s", artist_name)
+				dubLog(logPrefixHere, color.HiGreenString, "URL: %s", artist_url)
+				dubLog(logPrefixHere, color.HiGreenString, "IMAGE: %s", artist_image)
+				dubLog(logPrefixHere, color.HiGreenString, "GENRES: %s", strings.Join(genres, ", "))
+			}
+
+			/*
+
+				- clean input
+				- ifor artist/album/track/playlist
+
+			*/
+
+			/*msg, page, err := spotifyClient.FeaturedPlaylists(spotifyContext)
 			if err != nil {
 				dubLog(logPrefixHere, color.HiRedString, "Couldn't get featured playlists: %v", err)
 			} else {
@@ -111,7 +219,7 @@ func handleCommands() *exrouter.Route {
 				for _, playlist := range page.Playlists {
 					dubLog(logPrefixHere, color.HiCyanString, playlist.Name)
 				}
-			}
+			}*/
 		} else {
 			dubLog(logPrefixHere, color.RedString, "Bot is not connected to Spotify...")
 		}
