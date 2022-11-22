@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -35,7 +34,7 @@ func hasPerms(channelID string, permission int64) bool {
 			if err == nil {
 				return perms&permission == permission
 			}
-			log.Println(color.HiRedString("Failed to check permissions (%d) for %s:\t%s", permission, channelID, err))
+			dubLog("Discord", color.HiRedString, "Failed to check permissions (%d) for %s:\t%s", permission, channelID, err)
 		}
 	}
 	return false
@@ -123,7 +122,7 @@ func replyEmbed(m *discordgo.Message, title string, description string) (*discor
 				},
 			)
 		}
-		log.Println(color.HiRedString(fmtBotSendPerm, m.ChannelID))
+		dubLog("Discord", color.HiRedString, fmtBotSendPerm, m.ChannelID)
 	}
 	return nil, nil
 }

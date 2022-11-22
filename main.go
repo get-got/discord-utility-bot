@@ -21,21 +21,21 @@ var (
 	bot  *discordgo.Session
 	user *discordgo.User
 	dgr  *exrouter.Route
-	// Gen
-	loop                 chan os.Signal
-	startTime            time.Time
-	timeLastUpdated      time.Time
-	configReloadLastTime time.Time
+	// General
+	loop                chan os.Signal
+	timeLaunched        time.Time
+	timePresenceUpdated time.Time
+	timeConfigReloaded  time.Time
 )
 
 func init() {
 	loop = make(chan os.Signal, 1)
-	startTime = time.Now()
+	timeLaunched = time.Now()
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.SetOutput(color.Output)
-	log.Println(color.HiCyanString("Welcome to %s v%s", projectName, projectVersion))
-	log.Println(color.CyanString("discord-go v%s using Discord API v%s", discordgo.VERSION, discordgo.APIVersion))
+	dubLog("Main", color.HiCyanString, "Welcome to %s v%s", projectName, projectVersion)
+	dubLog("Version", color.CyanString, "discord-go v%s using Discord API v%s", discordgo.VERSION, discordgo.APIVersion)
 }
 
 func main() {
@@ -47,9 +47,9 @@ func main() {
 	botLogin()
 
 	// Startup Done
-	log.Println(color.YellowString("Startup finished, took %s...", uptime()))
-	log.Println(color.HiCyanString("%s v%s is online and connected to %d guilds", projectLabel, projectVersion, len(bot.State.Guilds)))
-	log.Println(color.RedString("CTRL+C to exit..."))
+	dubLog("Main", color.YellowString, "Startup finished, took %s...", uptime())
+	dubLog("Discord", color.HiCyanString, "%s v%s is online and connected to %d guilds", projectLabel, projectVersion, len(bot.State.Guilds))
+	dubLog("Main", color.RedString, "CTRL+C to exit...")
 
 	//#region Background Tasks
 
@@ -64,27 +64,27 @@ func main() {
 				//updateDiscordPresence()
 			case <-ticker1m.C:
 				doReconnect := func() {
-					log.Println(logPrefixDiscord, color.YellowString("Closing Discord connections..."))
+					dubLog("Discord", color.YellowString, "Closing Discord connections...")
 					bot.Client.CloseIdleConnections()
 					bot.CloseWithCode(1001)
 					bot = nil
-					log.Println(logPrefixDiscord, color.RedString("Discord connections closed!"))
+					dubLog("Discord", color.RedString, "Discord connections closed!")
 					if config.ExitOnBadConnection {
 						properExit()
 					} else {
-						log.Println(logPrefixDiscord, color.GreenString("Logging in..."))
+						dubLog("Discord", color.GreenString, "Logging in...")
 						botLogin()
-						log.Println(logPrefixDiscord, color.HiGreenString("Reconnected! The bot *should* resume working..."))
+						dubLog("Discord", color.HiGreenString, "Reconnected! The bot *should* resume working...")
 						// Log Status
 						//logStatusMessage(logStatusReconnect)
 					}
 				}
 				gate, err := bot.Gateway()
 				if err != nil || gate == "" {
-					log.Println(logPrefixDiscord, color.HiYellowString("Bot encountered a gateway error: GATEWAY: %s,\tERR: %s", gate, err))
+					dubLog("Discord", color.HiYellowString, "Bot encountered a gateway error: GATEWAY: %s,\tERR: %s", gate, err)
 					doReconnect()
 				} else if time.Since(bot.LastHeartbeatAck).Seconds() > 4*60 {
-					log.Println(logPrefixDiscord, color.HiYellowString("Bot has not received a heartbeat from Discord in 4 minutes..."))
+					dubLog("Discord", color.HiYellowString, "Bot has not received a heartbeat from Discord in 4 minutes...")
 					doReconnect()
 				}
 			}
@@ -97,10 +97,10 @@ func main() {
 	signal.Notify(loop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, os.Interrupt, os.Kill)
 	<-loop
 
-	log.Println(color.GreenString("Logging out of discord..."))
+	dubLog("Discord", color.GreenString, "Logging out of discord...")
 	bot.Close()
 
-	log.Println(color.HiRedString("Exiting... "))
+	dubLog("Main", color.HiRedString, "Exiting...")
 }
 
 var (
@@ -109,12 +109,10 @@ var (
 )
 
 func loadAPIs() {
-	logPrefixHere := color.HiMagentaString("[APIs]")
 	// Spotify
 	if config.Credentials.SpotifyClientID != "" && config.Credentials.SpotifyClientSecret != "" {
-		logPrefixHere = color.HiMagentaString("[API:Spotify]")
 
-		log.Println(logPrefixHere, color.MagentaString("Connecting to Spotify API..."))
+		dubLog("Spotify", color.MagentaString, "Connecting to Spotify API...")
 		spotifyConfig := &clientcredentials.Config{
 			ClientID:     config.Credentials.SpotifyClientID,
 			ClientSecret: config.Credentials.SpotifyClientSecret,
@@ -123,14 +121,14 @@ func loadAPIs() {
 		spotifyContext = context.Background()
 		spotifyToken, err := spotifyConfig.Token(spotifyContext)
 		if err != nil {
-			log.Println(logPrefixHere, color.HiRedString("Error getting Spotify token: %s", err))
+			dubLog("Spotify", color.HiRedString, "Error getting Spotify token: %s", err)
 		} else {
 			spotifyClient = spotify.New(spotifyauth.New().Client(spotifyContext, spotifyToken))
 			_, err = spotifyClient.GetCategories(spotifyContext)
 			if err != nil {
-				log.Println(logPrefixHere, color.HiRedString("Error connecting to Spotify: %s", err))
+				dubLog("Spotify", color.HiRedString, "Error connecting to Spotify: %s", err)
 			} else {
-				log.Println(logPrefixHere, color.HiGreenString("Connected to Spotify API!"))
+				dubLog("Spotify", color.HiGreenString, "Connected to Spotify API!")
 			}
 		}
 	}
@@ -143,25 +141,25 @@ func botLogin() {
 	var err error
 
 	if config.Credentials.Token != "" && config.Credentials.Token != placeholderToken {
-		log.Println(logPrefixDiscord, color.GreenString("Connecting to Discord via Token..."))
+		dubLog("Discord", color.GreenString, "Connecting to Discord via Token...")
 		input := config.Credentials.Token
 		if input[:3] != "Bot" {
 			input = "Bot " + input
 		}
 		bot, err = discordgo.New(input)
 	} else {
-		log.Println(logPrefixDiscord, color.HiRedString("No valid credentials for Discord..."))
+		dubLog("Discord", color.HiRedString, "No valid credentials for Discord...")
 		properExit()
 	}
 	if err != nil {
-		log.Println(logPrefixDiscord, color.HiRedString("Error logging in: %s", err))
+		dubLog("Discord", color.HiRedString, "Error logging in: %s", err)
 		properExit()
 	}
 
 	// Connect Bot
 	err = bot.Open()
 	if err != nil {
-		log.Println(logPrefixDiscord, color.HiRedString("Discord login failed:\t%s", err))
+		dubLog("Discord", color.HiRedString, "Discord login failed:\t%s", err)
 		properExit()
 	}
 	bot.ShouldReconnectOnError = true
@@ -171,11 +169,11 @@ func botLogin() {
 	if err != nil {
 		user = bot.State.User
 		if user == nil {
-			log.Println(logPrefixDiscord, color.HiRedString("Error obtaining user details: %s", err))
+			dubLog("Discord", color.HiRedString, "Error obtaining user details: %s", err)
 			loop <- syscall.SIGINT
 		}
 	} else if user == nil {
-		log.Println(logPrefixDiscord, color.HiRedString("No error encountered obtaining user details, but it's empty..."))
+		dubLog("Discord", color.HiRedString, "No error encountered obtaining user details, but it's empty...")
 		loop <- syscall.SIGINT
 	}
 
@@ -185,6 +183,6 @@ func botLogin() {
 	bot.AddHandler(messageUpdate)
 
 	// Start Presence
-	timeLastUpdated = time.Now()
+	timePresenceUpdated = time.Now()
 	//updateDiscordPresence()
 }

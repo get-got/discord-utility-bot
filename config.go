@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -90,11 +89,11 @@ func loadConfig() {
 		configFileC = false
 	}
 	// .
-	log.Println(logPrefixSettings, color.YellowString("Loading from \"%s\"...", configFile))
+	dubLog("Settings", color.YellowString, "Loading from \"%s\"...", configFile)
 	// Load settings
 	configContent, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Println(logPrefixSettings, color.HiRedString("Failed to open file...\t%s", err))
+		dubLog("Settings", color.HiRedString, "Failed to open file...\t%s", err)
 		//createConfig()
 		properExit()
 	} else {
@@ -114,8 +113,8 @@ func loadConfig() {
 			err = json.Unmarshal([]byte(fixed), &newConfig)
 		}
 		if err != nil {
-			log.Println(logPrefixSettings, color.HiRedString("Failed to parse settings file...\t%s", err))
-			log.Println(logPrefixSettings, color.MagentaString("Please ensure you're following proper JSON format syntax."))
+			dubLog("Settings", color.HiRedString, "Failed to parse settings file...\t%s", err)
+			dubLog("Settings", color.MagentaString, "Please ensure you're following proper JSON format syntax.")
 			properExit()
 		}
 		// Constants
@@ -133,8 +132,8 @@ func loadConfig() {
 				err = json.Unmarshal([]byte(fixed), &newConfig)
 			}
 			if err != nil {
-				log.Println(logPrefixSettings, color.HiRedString("Failed to re-parse settings file after replacing constants...\t%s", err))
-				log.Println(logPrefixSettings, color.MagentaString("Please ensure you're following proper JSON format syntax."))
+				dubLog("Settings", color.HiRedString, "Failed to re-parse settings file after replacing constants...\t%s", err)
+				dubLog("Settings", color.MagentaString, "Please ensure you're following proper JSON format syntax.")
 				properExit()
 			}
 			newConfig.Constants = nil
@@ -145,19 +144,17 @@ func loadConfig() {
 		if config.DebugOutput {
 			s, err := json.MarshalIndent(config, "", "\t")
 			if err != nil {
-				log.Println(logPrefixSettings, logPrefixDebug, color.HiRedString("Failed to output...\t%s", err))
+				dubLog("Debug", color.HiRedString, "Failed to output...\t%s", err)
 			} else {
-				log.Println(logPrefixSettings, logPrefixDebug, color.HiYellowString("Parsed into JSON:\n\n"),
-					color.YellowString(string(s)),
-				)
+				dubLog("Debug", color.HiYellowString, "Parsed into JSON:\n\n%s", string(s))
 			}
 		}
 
 		// Credentials Check
 		if config.Credentials.Token == "" || config.Credentials.Token == placeholderToken {
-			log.Println(logPrefixSettings, color.HiRedString("No valid discord login found. Token is invalid..."))
-			log.Println(logPrefixSettings, color.HiYellowString("Please save your credentials & info into \"%s\" then restart...", configFile))
-			log.Println(logPrefixSettings, color.MagentaString("If your credentials are already properly saved, please ensure you're following proper JSON format syntax."))
+			dubLog("Discord", color.HiRedString, "No valid discord login found. Token is invalid...")
+			dubLog("Discord", color.HiYellowString, "Please save your credentials & info into \"%s\" then restart...", configFile)
+			dubLog("Discord", color.MagentaString, "If your credentials are already properly saved, please ensure you're following proper JSON format syntax.")
 			properExit()
 		}
 	}

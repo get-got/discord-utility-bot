@@ -1,7 +1,5 @@
 package main
 
-import "github.com/fatih/color"
-
 const (
 	projectName    = "discord-utilities"
 	projectLabel   = "Discord Utilities"
@@ -18,18 +16,6 @@ const (
 	cachePath      = "cache"
 
 	defaultReact = "✅"
-)
-
-var (
-	logPrefixSetup = color.HiGreenString("[Setup]")
-
-	logPrefixDebug = color.HiYellowString("[Debug]")
-
-	logPrefixInfo = color.CyanString("[Info]")
-
-	logPrefixSettings = color.GreenString("[Settings]")
-	logPrefixVersion  = color.HiMagentaString("[Version]")
-	logPrefixDiscord  = color.HiBlueString("[Discord]")
 )
 
 var (
