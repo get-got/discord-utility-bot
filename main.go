@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -51,7 +52,7 @@ func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.SetOutput(color.Output)
 	dubLog("Main", color.HiCyanString, "Welcome to %s v%s", projectName, projectVersion)
-	dubLog("Version", color.CyanString, "discord-go v%s using Discord API v%s", discordgo.VERSION, discordgo.APIVersion)
+	dubLog("Version", color.CyanString, "%s / discord-go v%s / Discord API v%s", runtime.Version(), discordgo.VERSION, discordgo.APIVersion)
 }
 
 func main() {

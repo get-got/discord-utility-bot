@@ -74,9 +74,9 @@ func dubLog(group string, colorFunc func(string, ...interface{}) string, line st
 
 			}
 			if channelConfig.Channels != nil {
-				for _, ch := range *channelConfig.Channels {
+				/*for _, ch := range *channelConfig.Channels {
 
-				}
+				}*/
 			}
 		}
 	}

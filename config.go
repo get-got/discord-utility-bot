@@ -175,7 +175,7 @@ func loadConfig() {
 			if err != nil {
 				dubLog("Debug", color.HiRedString, "Failed to output...\t%s", err)
 			} else {
-				dubLog("Debug", color.HiYellowString, "Parsed into JSON:\n\n%s", string(s))
+				dubLog("Debug", color.HiYellowString, "Loaded Settings:\n%s", string(s))
 			}
 		}
 
