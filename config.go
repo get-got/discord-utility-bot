@@ -38,6 +38,7 @@ type configurationCredentials struct {
 
 var (
 	cdDebugOutput   bool   = false
+	cdMessageOutput bool   = true
 	cdCommandPrefix string = "dub "
 	// Appearance
 	cdPresenceEnabled bool                   = true
@@ -56,6 +57,7 @@ func defaultConfiguration() configuration {
 		Admins:              []string{},
 		CommandPrefix:       cdCommandPrefix,
 		DebugOutput:         cdDebugOutput,
+		MessageOutput:       cdMessageOutput,
 		ExitOnBadConnection: false,
 		DiscordLogLevel:     discordgo.LogError,
 		// Appearance
@@ -73,14 +75,14 @@ type configuration struct {
 	Credentials configurationCredentials `json:"credentials"` // required
 
 	// Setup
-	Admins              []string `json:"admins"`                        // optional
-	CommandPrefix       string   `json:"commandPrefix"`                 // optional, defaults
-	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
-	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
-	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
-	//MessageOutput                  bool                        `json:"messageOutput"`                            // optional, defaults
-	//CheckPermissions               bool                        `json:"checkPermissions,omitempty"`               // optional, defaults
+	Admins          []string `json:"admins"`                    // optional
+	CommandPrefix   string   `json:"commandPrefix"`             // optional, defaults
+	DebugOutput     bool     `json:"debugOutput"`               // optional, defaults
+	MessageOutput   bool     `json:"messageOutput"`             // optional, defaults
+	DiscordLogLevel int      `json:"discordLogLevel,omitempty"` // optional, defaults
 	//DiscordTimeout                 int                         `json:"discordTimeout,omitempty"`                 // optional, defaults
+	//DiscordCheckPerms               bool                        `json:"discordCheckPerms,omitempty"`               // optional, defaults
+	ExitOnBadConnection bool `json:"exitOnBadConnection,omitempty"` // optional, defaults
 	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
 
 	// Appearance
@@ -90,7 +92,7 @@ type configuration struct {
 	PresenceLabel   discordgo.ActivityType `json:"presenceLabel,omitempty"`   // optional, defaults
 	//EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
 
-	// Channels
+	// Discord
 	//All                  *configurationTarget  `json:"all,omitempty"`                  // optional, defaults
 	//AllBlacklistChannels *[]string             `json:"allBlacklistChannels,omitempty"` // optional
 	//AllBlacklistServers  *[]string             `json:"allBlacklistServers,omitempty"`  // optional
