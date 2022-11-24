@@ -1,4 +1,4 @@
-module github.com/get-got/discord-utilities
+module github.com/get-got/discord-utility-bot
 
 go 1.15
 
