@@ -78,7 +78,7 @@ func main() {
 			select {
 			case <-ticker5m.C:
 				// If bot experiences connection interruption the status will go blank until updated by message, this fixes that
-				//updateDiscordPresence()
+				updateDiscordPresence()
 			case <-ticker1m.C:
 				doReconnect := func() {
 					dubLog("Discord", color.YellowString, "Closing Discord connections...")
@@ -201,5 +201,5 @@ func botLogin() {
 
 	// Start Presence
 	timePresenceUpdated = time.Now()
-	//updateDiscordPresence()
+	updateDiscordPresence()
 }

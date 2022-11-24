@@ -39,6 +39,11 @@ type configurationCredentials struct {
 var (
 	cdDebugOutput   bool   = false
 	cdCommandPrefix string = "dub "
+	// Appearance
+	cdPresenceEnabled bool                   = true
+	cdPresenceStatus  string                 = "{{numServers}} servers"
+	cdPresenceType    string                 = string(discordgo.StatusOnline)
+	cdPresenceLabel   discordgo.ActivityType = discordgo.ActivityType(discordgo.ActivityTypeListening)
 )
 
 func defaultConfiguration() configuration {
@@ -53,6 +58,11 @@ func defaultConfiguration() configuration {
 		DebugOutput:         cdDebugOutput,
 		ExitOnBadConnection: false,
 		DiscordLogLevel:     discordgo.LogError,
+		// Appearance
+		PresenceEnabled: cdPresenceEnabled,
+		PresenceStatus:  &cdPresenceStatus,
+		PresenceType:    cdPresenceType,
+		PresenceLabel:   cdPresenceLabel,
 	}
 }
 
@@ -68,11 +78,16 @@ type configuration struct {
 	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
 	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
 	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
+	//MessageOutput                  bool                        `json:"messageOutput"`                            // optional, defaults
+	//CheckPermissions               bool                        `json:"checkPermissions,omitempty"`               // optional, defaults
+	//DiscordTimeout                 int                         `json:"discordTimeout,omitempty"`                 // optional, defaults
+	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
 
 	// Appearance
-	//PresenceEnabled bool               `json:"presenceEnabled"`        // optional, defaults
-	//PresenceStatus  string             `json:"presenceStatus"`         // optional, defaults
-	//PresenceType    discordgo.GameType `json:"presenceType,omitempty"` // optional, defaults
+	PresenceEnabled bool                   `json:"presenceEnabled,omitempty"` // optional, defaults
+	PresenceStatus  *string                `json:"presenceStatus,omitempty"`  // optional, defaults
+	PresenceType    string                 `json:"presenceType,omitempty"`    // optional, defaults
+	PresenceLabel   discordgo.ActivityType `json:"presenceLabel,omitempty"`   // optional, defaults
 	//EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
 
 	// Channels

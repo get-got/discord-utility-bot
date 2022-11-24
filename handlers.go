@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -20,6 +19,6 @@ func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 }
 
 func handleMessage(m *discordgo.Message) int64 {
-	log.Println(m.Content)
+	//log.Println(m.Content)
 	return -1
 }
