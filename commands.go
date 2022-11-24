@@ -70,8 +70,30 @@ func handleCommands() *exrouter.Route {
 	}).Cat("Utility").Alias("test").Desc("Pings the bot.")
 
 	router.On("help", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:help]")
+		logPrefixHere := color.CyanString("[commands:help]")
 		//TODO: is permitted channel
+		if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
+			dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+		} else {
+			//if isGlobalCommandAllowed(ctx.Msg) {
+			text := ""
+			for _, cmd := range router.Routes {
+				if cmd.Category != "Admin" || isBotAdmin(ctx.Msg) {
+					text += fmt.Sprintf("• \"%s\" : %s", cmd.Name, cmd.Description)
+					if len(cmd.Aliases) > 0 {
+						text += fmt.Sprintf("\n— Aliases: \"%s\"", strings.Join(cmd.Aliases, "\", \""))
+					}
+					text += "\n\n"
+				}
+			}
+			content := fmt.Sprintf("Use commands as ``\"%s<command> <arguments?>\"``\n```%s```\n%s",
+				config.CommandPrefix, text, projectRepoURL)
+			if _, err := replyEmbed(ctx.Msg, "Command — Help", content); err != nil {
+				dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+			}
+			dubLog(logPrefixHere, color.HiCyanString, "%s asked for help", getUserIdentifier(*ctx.Msg.Author))
+			//}
+		}
 
 	}).Cat("Utility").Alias("h").Desc("Help.")
 
@@ -83,9 +105,17 @@ func handleCommands() *exrouter.Route {
 		logPrefixHere := "[commands:exit]"
 		//TODO: is permitted channel
 		if !isBotAdmin(ctx.Msg) {
-			dubLog(logPrefixHere, color.HiRedString, "%s attempted to reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+			dubLog(logPrefixHere, color.HiRedString, "%s attempted program exit but is not admin...", getUserIdentifier(*ctx.Msg.Author))
 		} else {
-			//
+			dubLog(logPrefixHere, color.HiCyanString, "%s commanded program exit; exiting in 15 seconds...", getUserIdentifier(*ctx.Msg.Author))
+			if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
+				dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+			} else {
+				if _, err := replyEmbed(ctx.Msg, "Command — Exit", "Exiting bot program in 15 seconds..."); err != nil {
+					dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+				}
+			}
+			properExit()
 		}
 	}).Cat("Admin").Alias("reload", "kill").Desc("Exits this program.")
 
@@ -93,17 +123,18 @@ func handleCommands() *exrouter.Route {
 		logPrefixHere := "[commands:reboot]"
 		//TODO: is permitted channel
 		if !isBotAdmin(ctx.Msg) {
-			dubLog(logPrefixHere, color.HiRedString, "%s attempted to reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+			dubLog(logPrefixHere, color.HiRedString, "%s attempted system reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
 		} else {
-			dubLog(logPrefixHere, color.HiGreenString, "Rebooting in 10 seconds...")
-			_, err := replyEmbed(ctx.Msg, "Command — Reboot", "Rebooting host system in 10 seconds...")
-			if err != nil {
-				dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+			dubLog(logPrefixHere, color.HiGreenString, "%s commanded system reboot; rebooting in 10 seconds...", getUserIdentifier(*ctx.Msg.Author))
+			if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
+				dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+			} else {
+				if _, err := replyEmbed(ctx.Msg, "Command — Reboot", "Rebooting host system in 10 seconds..."); err != nil {
+					dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+				}
 			}
 			time.Sleep(10 * time.Second)
-			dubLog(logPrefixHere, color.HiGreenString, "Attempting to reboot system...")
 			reboot()
-			properExit()
 		}
 	}).Cat("Admin").Alias("restart", "shutdown").Desc("Restarts the server.")
 
@@ -115,13 +146,13 @@ func handleCommands() *exrouter.Route {
 		//logPrefixHere := color.CyanString("[commands:emoji]")
 		//TODO: is permitted channel
 
-	}).Cat("Discord").Alias("e").Desc("Emoji lookup.")
+	}).Cat("Discord").Alias("e").Desc("<WIP!!> Emoji lookup.")
 
 	router.On("emojis", func(ctx *exrouter.Context) {
 		//logPrefixHere := color.CyanString("[commands:emojis]")
 		//TODO: is permitted channel
 
-	}).Cat("Discord").Desc("Dump server emojis.")
+	}).Cat("Discord").Desc("<WIP!!> Dump server emojis.")
 
 	//#endregion
 
@@ -325,13 +356,13 @@ func handleCommands() *exrouter.Route {
 		//logPrefixHere := color.CyanString("[commands:minecraft]")
 		//TODO: is permitted channel
 
-	}).Cat("Games").Desc("Minecraft Server Status.")
+	}).Cat("Games").Desc("<WIP!!> Minecraft Server Status.")
 
 	router.On("valheim", func(ctx *exrouter.Context) {
 		//logPrefixHere := color.CyanString("[commands:valheim]")
 		//TODO: is permitted channel
 
-	}).Cat("Games").Desc("Valheim Server Status.")
+	}).Cat("Games").Desc("<WIP!!> Valheim Server Status.")
 
 	//#endregion
 
@@ -341,13 +372,13 @@ func handleCommands() *exrouter.Route {
 		//logPrefixHere := color.CyanString("[commands:plex]")
 		//TODO: is permitted channel
 
-	}).Cat("Misc").Desc("Plex Status.")
+	}).Cat("Misc").Desc("<WIP!!> Plex Status.")
 
 	router.On("webm", func(ctx *exrouter.Context) {
 		//logPrefixHere := color.CyanString("[commands:webm]")
 		//TODO: is permitted channel
 
-	}).Cat("Misc").Alias("mp4").Desc("WEBM to MP4 Conversion.")
+	}).Cat("Misc").Alias("mp4").Desc("<WIP!!> WEBM to MP4 Conversion.")
 
 	//#endregion
 
