@@ -1,4 +1,4 @@
-// +build windows
+//go:build windows
 
 package main
 
@@ -9,9 +9,8 @@ import (
 )
 
 func reboot() {
+	dubLog("Main", color.HiGreenString, "Rebooting...")
 	if err := exec.Command("cmd", "/C", "shutdown", "/r").Run(); err != nil {
-		dubLog("Main", color.HiRedString, "Failed to initiate shutdown:", err)
-	} else {
-		dubLog("Main", color.HiGreenString, "Rebooting...")
+		dubLog("Main", color.HiRedString, "Failed to initiate reboot:", err)
 	}
 }

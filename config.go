@@ -37,7 +37,8 @@ type configurationCredentials struct {
 //#region Configuration
 
 var (
-	cdDebugOutput bool = false
+	cdDebugOutput   bool   = false
+	cdCommandPrefix string = "dub "
 )
 
 func defaultConfiguration() configuration {
@@ -48,6 +49,7 @@ func defaultConfiguration() configuration {
 		},
 		// Setup
 		Admins:              []string{},
+		CommandPrefix:       cdCommandPrefix,
 		DebugOutput:         cdDebugOutput,
 		ExitOnBadConnection: false,
 		DiscordLogLevel:     discordgo.LogError,
@@ -62,6 +64,7 @@ type configuration struct {
 
 	// Setup
 	Admins              []string `json:"admins"`                        // optional
+	CommandPrefix       string   `json:"commandPrefix"`                 // optional, defaults
 	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
 	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
 	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults

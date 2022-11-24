@@ -10,6 +10,14 @@ import (
 	"github.com/fatih/color"
 )
 
+func isBotAdmin(m *discordgo.Message) bool {
+	// No Admins
+	if len(config.Admins) == 0 {
+		return true
+	}
+	return stringInSlice(m.Author.ID, config.Admins)
+}
+
 func getUserIdentifier(usr discordgo.User) string {
 	return fmt.Sprintf("\"%s\"#%s", usr.Username, usr.Discriminator)
 }

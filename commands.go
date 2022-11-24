@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 )
 
 // Multiple use messages to save space and make cleaner.
-//TODO: Implement this for more?
+// TODO: Implement this for more?
 const (
 	cmderrLackingLocalAdminPerms = "You do not have permission to use this command.\n" +
 		"\nTo use this command you must:" +
@@ -32,6 +33,7 @@ func handleCommands() *exrouter.Route {
 
 	router.On("ping", func(ctx *exrouter.Context) {
 		logPrefixHere := "[commands:ping]"
+		//TODO: is permitted channel
 		if hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
 			//if isCommandableChannel(ctx.Msg) {
 			beforePong := time.Now()
@@ -68,6 +70,8 @@ func handleCommands() *exrouter.Route {
 	}).Cat("Utility").Alias("test").Desc("Pings the bot.")
 
 	router.On("help", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:help]")
+		//TODO: is permitted channel
 
 	}).Cat("Utility").Alias("h").Desc("Help.")
 
@@ -76,14 +80,31 @@ func handleCommands() *exrouter.Route {
 	//#region Admin Commands
 
 	router.On("exit", func(ctx *exrouter.Context) {
-
+		logPrefixHere := "[commands:exit]"
+		//TODO: is permitted channel
+		if !isBotAdmin(ctx.Msg) {
+			dubLog(logPrefixHere, color.HiRedString, "%s attempted to reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+		} else {
+			//
+		}
 	}).Cat("Admin").Alias("reload", "kill").Desc("Exits this program.")
 
 	router.On("reboot", func(ctx *exrouter.Context) {
 		logPrefixHere := "[commands:reboot]"
-		dubLog(logPrefixHere, color.HiGreenString, "Attempting to reboot system...")
-		reboot()
-		properExit()
+		//TODO: is permitted channel
+		if !isBotAdmin(ctx.Msg) {
+			dubLog(logPrefixHere, color.HiRedString, "%s attempted to reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+		} else {
+			dubLog(logPrefixHere, color.HiGreenString, "Rebooting in 10 seconds...")
+			_, err := replyEmbed(ctx.Msg, "Command — Reboot", "Rebooting host system in 10 seconds...")
+			if err != nil {
+				dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+			}
+			time.Sleep(10 * time.Second)
+			dubLog(logPrefixHere, color.HiGreenString, "Attempting to reboot system...")
+			reboot()
+			properExit()
+		}
 	}).Cat("Admin").Alias("restart", "shutdown").Desc("Restarts the server.")
 
 	//#endregion
@@ -91,10 +112,14 @@ func handleCommands() *exrouter.Route {
 	//#region Discord
 
 	router.On("emoji", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:emoji]")
+		//TODO: is permitted channel
 
 	}).Cat("Discord").Alias("e").Desc("Emoji lookup.")
 
 	router.On("emojis", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:emojis]")
+		//TODO: is permitted channel
 
 	}).Cat("Discord").Desc("Dump server emojis.")
 
@@ -104,6 +129,7 @@ func handleCommands() *exrouter.Route {
 
 	router.On("sg", func(ctx *exrouter.Context) {
 		logPrefixHere := color.CyanString("[commands:spotifygenres]")
+		//TODO: is permitted channel
 		if spotifyClient != nil {
 
 			input := ctx.Args[1]
@@ -143,7 +169,78 @@ func handleCommands() *exrouter.Route {
 				}
 
 				if input_type == "playlist" {
-					//TODO:
+					var genres map[string]int = make(map[string]int)
+					var artists []spotify.ID
+					playlist, err := spotifyClient.GetPlaylist(spotifyContext, spotify.ID(cleanedInput))
+					if err != nil {
+						dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify playlist: %s", err)
+					} else {
+						isArtistInStack := func(artist spotify.ID) bool {
+							for _, a := range artists {
+								if a == artist {
+									return true
+								}
+							}
+							return false
+						}
+						for _, track := range playlist.Tracks.Tracks {
+							// cache unique artists
+							if !isArtistInStack(track.Track.Artists[0].ID) {
+								artists = append(artists, track.Track.Artists[0].ID)
+							}
+						}
+						// foreach unique artist
+						for _, a := range artists {
+							artist, err := spotifyClient.GetArtist(spotifyContext, a)
+							if err != nil {
+								dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify artist: %s", err)
+							} else {
+								for _, genre := range artist.Genres {
+									// exists
+									if _, ok := genres[genre]; ok {
+										genres[genre]++
+									} else {
+										genres[genre] = 1
+									}
+								}
+							}
+						}
+						// foreach genre
+						keys := make([]string, 0, len(genres))
+						for key := range genres {
+							keys = append(keys, key)
+						}
+						sort.SliceStable(keys, func(i, j int) bool {
+							return genres[keys[i]] > genres[keys[j]]
+						})
+						output := fmt.Sprintf("**[%s's](https://open.spotify.com/playlist/%s \"%s\") top genres:**", playlist.Name, playlist.ID.String(), playlist.Name)
+						for _, genre := range keys {
+							if genres[genre] > 1 {
+								output += fmt.Sprintf("\n• %s: %d", strings.Title(genre), genres[genre])
+							}
+						}
+						//TODO: clean this up and better error reporting
+						_, err := bot.ChannelMessageSendComplex(ctx.Msg.ChannelID,
+							&discordgo.MessageSend{
+								Content: ctx.Msg.Author.Mention(),
+								Embed: &discordgo.MessageEmbed{
+									Title:       "Spotify Genre Search",
+									Description: output,
+									Color:       getEmbedColor(ctx.Msg.ChannelID),
+									Thumbnail: &discordgo.MessageEmbedThumbnail{
+										URL: playlist.Images[0].URL,
+									},
+									Footer: &discordgo.MessageEmbedFooter{
+										IconURL: projectIcon,
+										Text:    fmt.Sprintf("%s v%s", projectName, projectVersion),
+									},
+								},
+							},
+						)
+						if err != nil {
+							dubLog(logPrefixHere, color.HiRedString, "Error sending command response message: %s", err)
+						}
+					}
 				} else {
 					// Output Vars
 					var artist_id spotify.ID
@@ -182,19 +279,39 @@ func handleCommands() *exrouter.Route {
 						}
 					}
 
-					dubLog(logPrefixHere, color.HiGreenString, "ARTIST: %s", artist_name)
-					dubLog(logPrefixHere, color.HiGreenString, "URL: %s", artist_url)
-					dubLog(logPrefixHere, color.HiGreenString, "IMAGE: %s", artist_image)
-					dubLog(logPrefixHere, color.HiGreenString, "GENRES: %s", strings.Join(genres, ", "))
+					output := fmt.Sprintf("**[%s's](%s \"%s\") genres:**", artist_name, artist_url, artist_name)
+					if len(genres) == 0 {
+						output += "\nWho?..."
+					} else {
+						for _, genre := range genres {
+							genre_link := fmt.Sprintf("https://open.spotify.com/search/genre%%3A%%22%s%%22", strings.ReplaceAll(genre, " ", "%20"))
+							output += fmt.Sprintf("\n• [%s](%s \"%s\")", strings.Title(genre), genre_link, genre)
+						}
+					}
+					//TODO: clean this up and better error reporting
+					_, err := bot.ChannelMessageSendComplex(ctx.Msg.ChannelID,
+						&discordgo.MessageSend{
+							Content: ctx.Msg.Author.Mention(),
+							Embed: &discordgo.MessageEmbed{
+								Title:       "Spotify Genre Search",
+								Description: output,
+								Color:       getEmbedColor(ctx.Msg.ChannelID),
+								Thumbnail: &discordgo.MessageEmbedThumbnail{
+									URL: artist_image,
+								},
+								Footer: &discordgo.MessageEmbedFooter{
+									IconURL: projectIcon,
+									Text:    fmt.Sprintf("%s v%s", projectName, projectVersion),
+								},
+							},
+						},
+					)
+					if err != nil {
+						dubLog(logPrefixHere, color.HiRedString, "Error sending command response message: %s", err)
+					}
+
 				}
 			}
-
-			/*
-
-				- clean input
-				- ifor artist/album/track/playlist
-
-			*/
 		} else {
 			dubLog(logPrefixHere, color.RedString, "Bot is not connected to Spotify...")
 		}
@@ -205,10 +322,14 @@ func handleCommands() *exrouter.Route {
 	//#region Games
 
 	router.On("minecraft", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:minecraft]")
+		//TODO: is permitted channel
 
 	}).Cat("Games").Desc("Minecraft Server Status.")
 
 	router.On("valheim", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:valheim]")
+		//TODO: is permitted channel
 
 	}).Cat("Games").Desc("Valheim Server Status.")
 
@@ -217,10 +338,14 @@ func handleCommands() *exrouter.Route {
 	//#region Misc...
 
 	router.On("plex", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:plex]")
+		//TODO: is permitted channel
 
 	}).Cat("Misc").Desc("Plex Status.")
 
 	router.On("webm", func(ctx *exrouter.Context) {
+		//logPrefixHere := color.CyanString("[commands:webm]")
+		//TODO: is permitted channel
 
 	}).Cat("Misc").Alias("mp4").Desc("WEBM to MP4 Conversion.")
 
@@ -229,6 +354,7 @@ func handleCommands() *exrouter.Route {
 	// Handler for Command Router
 	bot.AddHandler(func(_ *discordgo.Session, m *discordgo.MessageCreate) {
 		router.FindAndExecute(bot, ".", bot.State.User.ID, m.Message)
+		router.FindAndExecute(bot, config.CommandPrefix, bot.State.User.ID, m.Message)
 	})
 
 	return router

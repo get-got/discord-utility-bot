@@ -1,9 +1,17 @@
-// +build !windows
+//go:build !windows
 
 package main
 
+import (
+	"syscall"
+
+	"github.com/fatih/color"
+)
+
 func reboot() {
-	dubLog(logPrefixHere, color.HiGreenString, "Rebooting...")
+	dubLog("Main", color.HiGreenString, "Rebooting...")
 	syscall.Sync()
-	syscall.Reboot(syscall.LINUX_REBOOT_CMD_POWER_OFF)
+	if err := syscall.Reboot(syscall.LINUX_REBOOT_CMD_RESTART); err != nil {
+		dubLog("Main", color.HiRedString, "Failed to initiate reboot:", err)
+	}
 }
