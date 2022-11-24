@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
 )
@@ -77,15 +79,23 @@ func dubLog(group string, colorFunc func(string, ...interface{}) string, line st
 	}
 	log.Println(colorPrefix, colorFunc(line, p...))
 
-	for _, channelConfig := range config.OutputChannels {
-		if channelConfig.OutputProgram {
-			if channelConfig.Channel != "" {
+	if bot != nil && botReady {
+		for _, channelConfig := range config.OutputChannels {
+			if channelConfig.OutputProgram {
+				if channelConfig.Channel != "" {
+					if !hasPerms(channelConfig.Channel, discordgo.PermissionSendMessages) {
+						dubLog("Self", color.HiRedString, fmtBotSendPerm, channelConfig.Channel)
+					} else {
+						if _, err := bot.ChannelMessageSend(channelConfig.Channel, fmt.Sprintf("```%s | [%s] %s```", time.Now().Format(time.RFC3339), group, fmt.Sprintf(line, p...))); err != nil {
+							dubLog("Self", color.HiRedString, "Failed to send message...\t%s", err)
+						}
+					}
+				}
+				if channelConfig.Channels != nil {
+					/*for _, ch := range *channelConfig.Channels {
 
-			}
-			if channelConfig.Channels != nil {
-				/*for _, ch := range *channelConfig.Channels {
-
-				}*/
+					}*/
+				}
 			}
 		}
 	}

@@ -35,9 +35,10 @@ FUTURE ROADMAP:
 
 var (
 	// Bot
-	bot  *discordgo.Session
-	user *discordgo.User
-	dgr  *exrouter.Route
+	bot      *discordgo.Session
+	botReady bool = false
+	user     *discordgo.User
+	dgr      *exrouter.Route
 	// General
 	loop                chan os.Signal
 	timeLaunched        time.Time
@@ -62,6 +63,7 @@ func main() {
 	loadConfig()
 
 	botLogin()
+	botReady = true
 
 	// Startup Done
 	dubLog("Main", color.YellowString, "Startup finished, took %s...", uptime())

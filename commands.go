@@ -32,7 +32,7 @@ func handleCommands() *exrouter.Route {
 	//#region Utility Commands
 
 	router.On("ping", func(ctx *exrouter.Context) {
-		logPrefixHere := "[commands:ping]"
+		logPrefixHere := "commands:ping"
 		//TODO: is permitted channel
 		if hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
 			//if isCommandableChannel(ctx.Msg) {
@@ -70,7 +70,7 @@ func handleCommands() *exrouter.Route {
 	}).Cat("Utility").Alias("test").Desc("Pings the bot.")
 
 	router.On("help", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("[commands:help]")
+		logPrefixHere := color.CyanString("commands:help")
 		//TODO: is permitted channel
 		if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
 			dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
@@ -102,7 +102,7 @@ func handleCommands() *exrouter.Route {
 	//#region Admin Commands
 
 	router.On("exit", func(ctx *exrouter.Context) {
-		logPrefixHere := "[commands:exit]"
+		logPrefixHere := "commands:exit"
 		//TODO: is permitted channel
 		if !isBotAdmin(ctx.Msg) {
 			dubLog(logPrefixHere, color.HiRedString, "%s attempted program exit but is not admin...", getUserIdentifier(*ctx.Msg.Author))
@@ -120,7 +120,7 @@ func handleCommands() *exrouter.Route {
 	}).Cat("Admin").Alias("reload", "kill").Desc("Exits this program.")
 
 	router.On("reboot", func(ctx *exrouter.Context) {
-		logPrefixHere := "[commands:reboot]"
+		logPrefixHere := "commands:reboot"
 		//TODO: is permitted channel
 		if !isBotAdmin(ctx.Msg) {
 			dubLog(logPrefixHere, color.HiRedString, "%s attempted system reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
@@ -143,13 +143,13 @@ func handleCommands() *exrouter.Route {
 	//#region Discord
 
 	router.On("emoji", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:emoji]")
+		//logPrefixHere := color.CyanString("commands:emoji")
 		//TODO: is permitted channel
 
 	}).Cat("Discord").Alias("e").Desc("<WIP!!> Emoji lookup.")
 
 	router.On("emojis", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:emojis]")
+		//logPrefixHere := color.CyanString("commands:emojis")
 		//TODO: is permitted channel
 
 	}).Cat("Discord").Desc("<WIP!!> Dump server emojis.")
@@ -159,7 +159,7 @@ func handleCommands() *exrouter.Route {
 	//#region Spotify API
 
 	router.On("sg", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("[commands:spotifygenres]")
+		logPrefixHere := color.CyanString("commands:spotifygenres")
 		//TODO: is permitted channel
 		if spotifyClient != nil {
 
@@ -353,13 +353,13 @@ func handleCommands() *exrouter.Route {
 	//#region Games
 
 	router.On("minecraft", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:minecraft]")
+		//logPrefixHere := color.CyanString("commands:minecraft")
 		//TODO: is permitted channel
 
 	}).Cat("Games").Desc("<WIP!!> Minecraft Server Status.")
 
 	router.On("valheim", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:valheim]")
+		//logPrefixHere := color.CyanString("commands:valheim")
 		//TODO: is permitted channel
 
 	}).Cat("Games").Desc("<WIP!!> Valheim Server Status.")
@@ -369,13 +369,13 @@ func handleCommands() *exrouter.Route {
 	//#region Misc...
 
 	router.On("plex", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:plex]")
+		//logPrefixHere := color.CyanString("commands:plex")
 		//TODO: is permitted channel
 
 	}).Cat("Misc").Desc("<WIP!!> Plex Status.")
 
 	router.On("webm", func(ctx *exrouter.Context) {
-		//logPrefixHere := color.CyanString("[commands:webm]")
+		//logPrefixHere := color.CyanString("commands:webm")
 		//TODO: is permitted channel
 
 	}).Cat("Misc").Alias("mp4").Desc("<WIP!!> WEBM to MP4 Conversion.")
