@@ -191,7 +191,17 @@ func loadConfig() {
 
 		// Debug Output
 		if config.DebugOutput {
-			s, err := json.MarshalIndent(config, "", "\t")
+			dupeConfig := config
+			if dupeConfig.Credentials.Token != "" && dupeConfig.Credentials.Token != placeholderToken {
+				dupeConfig.Credentials.Token = "STRIPPED_FOR_OUTPUT"
+			}
+			if dupeConfig.Credentials.SpotifyClientID != "" {
+				dupeConfig.Credentials.SpotifyClientID = "STRIPPED_FOR_OUTPUT"
+			}
+			if dupeConfig.Credentials.SpotifyClientSecret != "" {
+				dupeConfig.Credentials.SpotifyClientSecret = "STRIPPED_FOR_OUTPUT"
+			}
+			s, err := json.MarshalIndent(dupeConfig, "", "\t")
 			if err != nil {
 				dubLog("Debug", color.HiRedString, "Failed to output...\t%s", err)
 			} else {
