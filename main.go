@@ -12,6 +12,7 @@ import (
 	"github.com/Necroforger/dgrouter/exrouter"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2/clientcredentials"
@@ -40,10 +41,11 @@ var (
 	user     *discordgo.User
 	dgr      *exrouter.Route
 	// General
-	loop                chan os.Signal
-	timeLaunched        time.Time
-	timePresenceUpdated time.Time
-	timeConfigReloaded  time.Time
+	loop                 chan os.Signal
+	timeLaunched         time.Time
+	timePresenceUpdated  time.Time
+	timeConfigReloaded   time.Time
+	configReloadLastTime time.Time
 )
 
 func init() {
@@ -106,6 +108,44 @@ func main() {
 					dubLog("Discord", color.HiYellowString, "Bot has not received a heartbeat from Discord in 4 minutes...")
 					doReconnect()
 				}
+			}
+		}
+	}()
+
+	// Settings Watcher
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		dubLog("Settings", color.HiRedString, "Error creating NewWatcher:\t%s", err)
+	}
+	defer watcher.Close()
+	err = watcher.Add(configFile)
+	if err != nil {
+		dubLog("Settings", color.HiRedString, "Error adding watcher for settings:\t%s", err)
+	}
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					// It double-fires the event without time check, might depend on OS but this works anyways
+					if time.Now().Sub(configReloadLastTime).Milliseconds() > 1 {
+						time.Sleep(1 * time.Second)
+						dubLog("Settings", color.YellowString, "Detected changes in \"%s\", reloading...", configFile)
+						loadConfig()
+						dubLog("Settings", color.HiYellowString, "Reloaded...")
+
+						updateDiscordPresence()
+					}
+					configReloadLastTime = time.Now()
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				dubLog("Settings", color.HiRedString, "Watcher Error:\t%s", err)
 			}
 		}
 	}()
