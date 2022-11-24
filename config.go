@@ -67,25 +67,33 @@ type configuration struct {
 	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
 
 	// Appearance
-	PresenceEnabled bool               `json:"presenceEnabled"`        // optional, defaults
-	PresenceStatus  string             `json:"presenceStatus"`         // optional, defaults
-	PresenceType    discordgo.GameType `json:"presenceType,omitempty"` // optional, defaults
-	EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
+	//PresenceEnabled bool               `json:"presenceEnabled"`        // optional, defaults
+	//PresenceStatus  string             `json:"presenceStatus"`         // optional, defaults
+	//PresenceType    discordgo.GameType `json:"presenceType,omitempty"` // optional, defaults
+	//EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
 
 	// Channels
 	//All                  *configurationTarget  `json:"all,omitempty"`                  // optional, defaults
 	//AllBlacklistChannels *[]string             `json:"allBlacklistChannels,omitempty"` // optional
 	//AllBlacklistServers  *[]string             `json:"allBlacklistServers,omitempty"`  // optional
-	Servers []configurationTarget `json:"servers"` // required
+	PermittedServers []configurationTarget `json:"permittedServers"` // required
+	OutputChannels   []configurationOutput `json:"outputChannels"`   // required
 }
 
 type configurationTarget struct {
-	Server  string    `json:"server,omitempty"`  // used for config.Servers
+	Server  string    `json:"server,omitempty"`  // used for config.PermittedServers
 	Servers *[]string `json:"servers,omitempty"` // ---> alternative to Server
 
-	OutputProgram  bool `json:"outputProgram,omitempty"`  // optional, defaults
-	OutputErrors   bool `json:"outputErrors,omitempty"`   // optional, defaults
-	OutputCommands bool `json:"outputCommands,omitempty"` // optional, defaults
+	//UnlockCommands bool `json:"unlockCommands,omitempty"` // optional, defaults
+}
+
+type configurationOutput struct {
+	Channel  string    `json:"channel,omitempty"`  // used for config.OutputChannels
+	Channels *[]string `json:"channels,omitempty"` // ---> alternative to Channel
+
+	OutputProgram bool `json:"outputProgram,omitempty"` // optional, defaults
+	//OutputErrors   bool `json:"outputErrors,omitempty"`   // optional, defaults
+	//OutputCommands bool `json:"outputCommands,omitempty"` // optional, defaults
 }
 
 //#endregion

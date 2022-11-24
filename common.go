@@ -68,6 +68,19 @@ func dubLog(group string, colorFunc func(string, ...interface{}) string, line st
 	}
 	log.Println(colorPrefix, colorFunc(line, p...))
 
+	for _, channelConfig := range config.OutputChannels {
+		if channelConfig.OutputProgram {
+			if channelConfig.Channel != "" {
+
+			}
+			if channelConfig.Channels != nil {
+				for _, ch := range *channelConfig.Channels {
+
+				}
+			}
+		}
+	}
+
 	if false {
 		// send to discord log channel(s) (group, line)
 	}
