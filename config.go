@@ -109,8 +109,6 @@ type configurationOutput struct {
 	Channels *[]string `json:"channels,omitempty"` // ---> alternative to Channel
 
 	OutputProgram bool `json:"outputProgram,omitempty"` // optional, defaults
-	//OutputErrors   bool `json:"outputErrors,omitempty"`   // optional, defaults
-	//OutputCommands bool `json:"outputCommands,omitempty"` // optional, defaults
 }
 
 func isServerPermitted(serverID string) bool {
