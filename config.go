@@ -113,6 +113,22 @@ type configurationOutput struct {
 	//OutputCommands bool `json:"outputCommands,omitempty"` // optional, defaults
 }
 
+func isServerPermitted(serverID string) bool {
+	for _, server := range config.PermittedServers {
+		if serverID == server.Server {
+			return true
+		}
+		if server.Servers != nil {
+			for _, nestedServer := range *server.Servers {
+				if serverID == nestedServer {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 //#endregion
 
 func initConfig() {
