@@ -18,6 +18,14 @@ func isBotAdmin(m *discordgo.Message) bool {
 	if len(config.Admins) == 0 {
 		return true
 	}
+	// Bypass Check
+	if isServerPermitted(m.GuildID) {
+		serverConfig := getPermittedServerConfig(m.GuildID)
+		if serverConfig.UnlockCommands {
+			return true
+		}
+	}
+	//
 	return stringInSlice(m.Author.ID, config.Admins)
 }
 

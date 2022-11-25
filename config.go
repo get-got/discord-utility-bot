@@ -101,7 +101,7 @@ type configurationTarget struct {
 	Server  string    `json:"server,omitempty"`  // used for config.PermittedServers
 	Servers *[]string `json:"servers,omitempty"` // ---> alternative to Server
 
-	//UnlockCommands bool `json:"unlockCommands,omitempty"` // optional, defaults
+	UnlockCommands bool `json:"unlockCommands,omitempty"` // optional, defaults
 }
 
 type configurationOutput struct {
@@ -125,6 +125,22 @@ func isServerPermitted(serverID string) bool {
 		}
 	}
 	return false
+}
+
+func getPermittedServerConfig(serverID string) configurationTarget {
+	for _, server := range config.PermittedServers {
+		if serverID == server.Server {
+			return server
+		}
+		if server.Servers != nil {
+			for _, nestedServer := range *server.Servers {
+				if serverID == nestedServer {
+					return server
+				}
+			}
+		}
+	}
+	return configurationTarget{}
 }
 
 //#endregion
