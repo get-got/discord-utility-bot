@@ -82,25 +82,24 @@ func dubLog(group string, colorFunc func(string, ...interface{}) string, line st
 	if bot != nil && botReady {
 		for _, channelConfig := range config.OutputChannels {
 			if channelConfig.OutputProgram {
-				if channelConfig.Channel != "" {
-					if !hasPerms(channelConfig.Channel, discordgo.PermissionSendMessages) {
-						dubLog("Self", color.HiRedString, fmtBotSendPerm, channelConfig.Channel)
-					} else {
-						if _, err := bot.ChannelMessageSend(channelConfig.Channel, fmt.Sprintf("```%s | [%s] %s```", time.Now().Format(time.RFC3339), group, fmt.Sprintf(line, p...))); err != nil {
-							dubLog("Self", color.HiRedString, "Failed to send message...\t%s", err)
+				outputToChannel := func(channel string) {
+					if channel != "" {
+						if !hasPerms(channel, discordgo.PermissionSendMessages) {
+							dubLog("Self", color.HiRedString, fmtBotSendPerm, channel)
+						} else {
+							if _, err := bot.ChannelMessageSend(channel, fmt.Sprintf("```%s | [%s] %s```", time.Now().Format(time.RFC3339), group, fmt.Sprintf(line, p...))); err != nil {
+								dubLog("Self", color.HiRedString, "Failed to send message...\t%s", err)
+							}
 						}
 					}
 				}
+				outputToChannel(channelConfig.Channel)
 				if channelConfig.Channels != nil {
-					/*for _, ch := range *channelConfig.Channels {
-
-					}*/
+					for _, ch := range *channelConfig.Channels {
+						outputToChannel(ch)
+					}
 				}
 			}
 		}
-	}
-
-	if false {
-		// send to discord log channel(s) (group, line)
 	}
 }
