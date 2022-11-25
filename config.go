@@ -58,6 +58,7 @@ func defaultConfiguration() configuration {
 		CommandPrefix:       cdCommandPrefix,
 		DebugOutput:         cdDebugOutput,
 		MessageOutput:       cdMessageOutput,
+		DiscordTimeout:      180,
 		ExitOnBadConnection: false,
 		DiscordLogLevel:     discordgo.LogError,
 		// Appearance
@@ -80,7 +81,7 @@ type configuration struct {
 	DebugOutput     bool     `json:"debugOutput"`               // optional, defaults
 	MessageOutput   bool     `json:"messageOutput"`             // optional, defaults
 	DiscordLogLevel int      `json:"discordLogLevel,omitempty"` // optional, defaults
-	//DiscordTimeout                 int                         `json:"discordTimeout,omitempty"`                 // optional, defaults
+	DiscordTimeout  int      `json:"discordTimeout,omitempty"`  // optional, defaults
 	//DiscordCheckPerms               bool                        `json:"discordCheckPerms,omitempty"`               // optional, defaults
 	ExitOnBadConnection bool `json:"exitOnBadConnection,omitempty"` // optional, defaults
 	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
