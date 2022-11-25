@@ -20,7 +20,7 @@ func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 }
 
 func handleMessage(m *discordgo.Message, edited bool) int64 {
-	if config.MessageOutput && m.Author.ID != bot.State.User.ID {
+	if config.MessageOutput && m.Author.ID != bot.State.User.ID && !m.Author.Bot {
 		prfx := "NEW MESSAGE"
 		if edited {
 			prfx = "MESSAGE EDIT"
