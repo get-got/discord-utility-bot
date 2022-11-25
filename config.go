@@ -37,14 +37,9 @@ type configurationCredentials struct {
 //#region Configuration
 
 var (
-	cdDebugOutput   bool   = false
-	cdMessageOutput bool   = true
-	cdCommandPrefix string = "dub "
-	// Appearance
-	cdPresenceEnabled bool                   = true
-	cdPresenceStatus  string                 = "{{numServers}} servers"
-	cdPresenceType    string                 = string(discordgo.StatusOnline)
-	cdPresenceLabel   discordgo.ActivityType = discordgo.ActivityType(discordgo.ActivityTypeListening)
+	cdCommandPrefix  string = "dub "
+	cdPresenceStatus string = "{{numServers}} servers"
+	cdPresenceType   string = string(discordgo.StatusOnline)
 )
 
 func defaultConfiguration() configuration {
@@ -55,17 +50,18 @@ func defaultConfiguration() configuration {
 		},
 		// Setup
 		Admins:              []string{},
+		DebugOutput:         false,
+		MessageOutput:       true,
 		CommandPrefix:       cdCommandPrefix,
-		DebugOutput:         cdDebugOutput,
-		MessageOutput:       cdMessageOutput,
+		DiscordCheckPerms:   true,
 		DiscordTimeout:      180,
 		ExitOnBadConnection: false,
 		DiscordLogLevel:     discordgo.LogError,
 		// Appearance
-		PresenceEnabled: cdPresenceEnabled,
+		PresenceEnabled: true,
 		PresenceStatus:  &cdPresenceStatus,
 		PresenceType:    cdPresenceType,
-		PresenceLabel:   cdPresenceLabel,
+		PresenceLabel:   discordgo.ActivityType(discordgo.ActivityTypeListening),
 	}
 }
 
@@ -76,14 +72,14 @@ type configuration struct {
 	Credentials configurationCredentials `json:"credentials"` // required
 
 	// Setup
-	Admins          []string `json:"admins"`                    // optional
-	CommandPrefix   string   `json:"commandPrefix"`             // optional, defaults
-	DebugOutput     bool     `json:"debugOutput"`               // optional, defaults
-	MessageOutput   bool     `json:"messageOutput"`             // optional, defaults
-	DiscordLogLevel int      `json:"discordLogLevel,omitempty"` // optional, defaults
-	DiscordTimeout  int      `json:"discordTimeout,omitempty"`  // optional, defaults
-	//DiscordCheckPerms               bool                        `json:"discordCheckPerms,omitempty"`               // optional, defaults
-	ExitOnBadConnection bool `json:"exitOnBadConnection,omitempty"` // optional, defaults
+	Admins              []string `json:"admins"`                        // optional
+	CommandPrefix       string   `json:"commandPrefix"`                 // optional, defaults
+	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
+	MessageOutput       bool     `json:"messageOutput"`                 // optional, defaults
+	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
+	DiscordTimeout      int      `json:"discordTimeout,omitempty"`      // optional, defaults
+	DiscordCheckPerms   bool     `json:"discordCheckPerms,omitempty"`   // optional, defaults
+	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
 	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
 
 	// Appearance

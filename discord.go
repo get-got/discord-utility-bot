@@ -33,6 +33,10 @@ func messageToLower(message *discordgo.Message) *discordgo.Message {
 }
 
 func hasPerms(channelID string, permission int64) bool {
+	if !config.DiscordCheckPerms {
+		return true
+	}
+
 	sourceChannel, err := bot.State.Channel(channelID)
 	if sourceChannel != nil && err == nil {
 		switch sourceChannel.Type {
