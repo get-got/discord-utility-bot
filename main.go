@@ -54,8 +54,8 @@ func init() {
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.SetOutput(color.Output)
-	dubLog("Main", color.HiCyanString, "Welcome to %s v%s", projectName, projectVersion)
-	dubLog("Version", color.CyanString, "%s / discord-go v%s / Discord API v%s", runtime.Version(), discordgo.VERSION, discordgo.APIVersion)
+	dubLog("Main", logLevelInfo, color.HiCyanString, "Welcome to %s v%s", projectName, projectVersion)
+	dubLog("Version", logLevelInfo, color.CyanString, "%s / discord-go v%s / Discord API v%s", runtime.Version(), discordgo.VERSION, discordgo.APIVersion)
 }
 
 func main() {
@@ -68,9 +68,9 @@ func main() {
 	botReady = true
 
 	// Startup Done
-	dubLog("Main", color.YellowString, "Startup finished, took %s...", uptime())
-	dubLog("Discord", color.HiCyanString, "%s v%s is online and connected to %d guilds", projectLabel, projectVersion, len(bot.State.Guilds))
-	dubLog("Main", color.RedString, "CTRL+C to exit...")
+	dubLog("Main", logLevelInfo, color.YellowString, "Startup finished, took %s...", uptime())
+	dubLog("Discord", logLevelInfo, color.HiCyanString, "%s v%s is online and connected to %d guilds", projectLabel, projectVersion, len(bot.State.Guilds))
+	dubLog("Main", logLevelInfo, color.RedString, "CTRL+C to exit...")
 
 	//#region Background Tasks
 
@@ -85,27 +85,27 @@ func main() {
 				updateDiscordPresence()
 			case <-ticker1m.C:
 				doReconnect := func() {
-					dubLog("Discord", color.YellowString, "Closing Discord connections...")
+					dubLog("Discord", logLevelInfo, color.YellowString, "Closing Discord connections...")
 					bot.Client.CloseIdleConnections()
 					bot.CloseWithCode(1001)
 					bot = nil
-					dubLog("Discord", color.RedString, "Discord connections closed!")
+					dubLog("Discord", logLevelInfo, color.RedString, "Discord connections closed!")
 					if config.ExitOnBadConnection {
 						properExit()
 					} else {
-						dubLog("Discord", color.GreenString, "Logging in...")
+						dubLog("Discord", logLevelInfo, color.GreenString, "Logging in...")
 						botLogin()
-						dubLog("Discord", color.HiGreenString, "Reconnected! The bot *should* resume working...")
+						dubLog("Discord", logLevelInfo, color.HiGreenString, "Reconnected! The bot *should* resume working...")
 						// Log Status
 						//logStatusMessage(logStatusReconnect)
 					}
 				}
 				gate, err := bot.Gateway()
 				if err != nil || gate == "" {
-					dubLog("Discord", color.HiYellowString, "Bot encountered a gateway error: GATEWAY: %s,\tERR: %s", gate, err)
+					dubLog("Discord", logLevelInfo, color.HiYellowString, "Bot encountered a gateway error: GATEWAY: %s,\tERR: %s", gate, err)
 					doReconnect()
 				} else if time.Since(bot.LastHeartbeatAck).Seconds() > 4*60 {
-					dubLog("Discord", color.HiYellowString, "Bot has not received a heartbeat from Discord in 4 minutes...")
+					dubLog("Discord", logLevelInfo, color.HiYellowString, "Bot has not received a heartbeat from Discord in 4 minutes...")
 					doReconnect()
 				}
 			}
@@ -115,12 +115,12 @@ func main() {
 	// Settings Watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		dubLog("Settings", color.HiRedString, "Error creating NewWatcher:\t%s", err)
+		dubLog("Settings", logLevelError, color.HiRedString, "Error creating NewWatcher:\t%s", err)
 	}
 	defer watcher.Close()
 	err = watcher.Add(configFile)
 	if err != nil {
-		dubLog("Settings", color.HiRedString, "Error adding watcher for settings:\t%s", err)
+		dubLog("Settings", logLevelError, color.HiRedString, "Error adding watcher for settings:\t%s", err)
 	}
 	go func() {
 		for {
@@ -133,9 +133,9 @@ func main() {
 					// It double-fires the event without time check, might depend on OS but this works anyways
 					if time.Now().Sub(configReloadLastTime).Milliseconds() > 1 {
 						time.Sleep(1 * time.Second)
-						dubLog("Settings", color.YellowString, "Detected changes in \"%s\", reloading...", configFile)
+						dubLog("Settings", logLevelInfo, color.YellowString, "Detected changes in \"%s\", reloading...", configFile)
 						loadConfig()
-						dubLog("Settings", color.HiYellowString, "Reloaded...")
+						dubLog("Settings", logLevelInfo, color.HiYellowString, "Reloaded...")
 
 						updateDiscordPresence()
 					}
@@ -145,7 +145,7 @@ func main() {
 				if !ok {
 					return
 				}
-				dubLog("Settings", color.HiRedString, "Watcher Error:\t%s", err)
+				dubLog("Settings", logLevelError, color.HiRedString, "Watcher Error:\t%s", err)
 			}
 		}
 	}()
@@ -156,10 +156,10 @@ func main() {
 	signal.Notify(loop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, os.Interrupt, os.Kill)
 	<-loop
 
-	dubLog("Discord", color.GreenString, "Logging out of discord...")
+	dubLog("Discord", logLevelInfo, color.GreenString, "Logging out of discord...")
 	bot.Close()
 
-	dubLog("Main", color.HiRedString, "Exiting...")
+	dubLog("Main", logLevelInfo, color.HiRedString, "Exiting...")
 }
 
 var (
@@ -171,7 +171,7 @@ func loadAPIs() {
 	// Spotify
 	if config.Credentials.SpotifyClientID != "" && config.Credentials.SpotifyClientSecret != "" {
 
-		dubLog("Spotify", color.MagentaString, "Connecting to Spotify API...")
+		dubLog("Spotify", logLevelInfo, color.MagentaString, "Connecting to Spotify API...")
 		spotifyConfig := &clientcredentials.Config{
 			ClientID:     config.Credentials.SpotifyClientID,
 			ClientSecret: config.Credentials.SpotifyClientSecret,
@@ -180,14 +180,14 @@ func loadAPIs() {
 		spotifyContext = context.Background()
 		spotifyToken, err := spotifyConfig.Token(spotifyContext)
 		if err != nil {
-			dubLog("Spotify", color.HiRedString, "Error getting Spotify token: %s", err)
+			dubLog("Spotify", logLevelError, color.HiRedString, "Error getting Spotify token: %s", err)
 		} else {
 			spotifyClient = spotify.New(spotifyauth.New().Client(spotifyContext, spotifyToken))
 			_, err = spotifyClient.GetCategories(spotifyContext)
 			if err != nil {
-				dubLog("Spotify", color.HiRedString, "Error connecting to Spotify: %s", err)
+				dubLog("Spotify", logLevelError, color.HiRedString, "Error connecting to Spotify: %s", err)
 			} else {
-				dubLog("Spotify", color.HiGreenString, "Connected to Spotify API!")
+				dubLog("Spotify", logLevelInfo, color.HiGreenString, "Connected to Spotify API!")
 			}
 		}
 	}
@@ -200,25 +200,25 @@ func botLogin() {
 	var err error
 
 	if config.Credentials.Token != "" && config.Credentials.Token != placeholderToken {
-		dubLog("Discord", color.GreenString, "Connecting to Discord via Token...")
+		dubLog("Discord", logLevelInfo, color.GreenString, "Connecting to Discord via Token...")
 		input := config.Credentials.Token
 		if input[:3] != "Bot" {
 			input = "Bot " + input
 		}
 		bot, err = discordgo.New(input)
 	} else {
-		dubLog("Discord", color.HiRedString, "No valid credentials for Discord...")
+		dubLog("Discord", logLevelFatal, color.HiRedString, "No valid credentials for Discord...")
 		properExit()
 	}
 	if err != nil {
-		dubLog("Discord", color.HiRedString, "Error logging in: %s", err)
+		dubLog("Discord", logLevelFatal, color.HiRedString, "Error logging in: %s", err)
 		properExit()
 	}
 
 	// Connect Bot
 	err = bot.Open()
 	if err != nil {
-		dubLog("Discord", color.HiRedString, "Discord login failed:\t%s", err)
+		dubLog("Discord", logLevelFatal, color.HiRedString, "Discord login failed:\t%s", err)
 		properExit()
 	}
 	bot.ShouldReconnectOnError = true
@@ -233,11 +233,11 @@ func botLogin() {
 	if err != nil {
 		user = bot.State.User
 		if user == nil {
-			dubLog("Discord", color.HiRedString, "Error obtaining user details: %s", err)
+			dubLog("Discord", logLevelFatal, color.HiRedString, "Error obtaining user details: %s", err)
 			loop <- syscall.SIGINT
 		}
 	} else if user == nil {
-		dubLog("Discord", color.HiRedString, "No error encountered obtaining user details, but it's empty...")
+		dubLog("Discord", logLevelFatal, color.HiRedString, "No error encountered obtaining user details, but it's empty...")
 		loop <- syscall.SIGINT
 	}
 

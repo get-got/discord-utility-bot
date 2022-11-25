@@ -25,7 +25,7 @@ func handleMessage(m *discordgo.Message, edited bool) int64 {
 		if edited {
 			prfx = "MESSAGE EDIT"
 		}
-		dubLog(prfx, color.CyanString, "%s/%s/%s - %s: %s (%d attachments)",
+		dubLog(prfx, logLevelInfo, color.CyanString, "%s/%s/%s - %s: %s (%d attachments)",
 			m.GuildID, m.ChannelID, m.ID, getUserIdentifier(*m.Author), m.Content, len(m.Attachments),
 		)
 	}

@@ -18,8 +18,8 @@ func uptime() time.Duration {
 
 func properExit() {
 	// Not formatting string because I only want the exit message to be red.
-	dubLog("Main", color.HiRedString, "EXIT IN 15 SECONDS - Uptime was %s...", durafmt.Parse(time.Since(timeLaunched)).String())
-	dubLog("Main", color.HiCyanString, "---------------------------------------------------------------------")
+	dubLog("Main", logLevelInfo, color.HiRedString, "EXIT IN 15 SECONDS - Uptime was %s...", durafmt.Parse(time.Since(timeLaunched)).String())
+	dubLog("Main", logLevelInfo, color.HiCyanString, "---------------------------------------------------------------------")
 	time.Sleep(15 * time.Second)
 	os.Exit(1)
 }
@@ -41,7 +41,18 @@ implement log leveling
 
 */
 
-func dubLog(group string, colorFunc func(string, ...interface{}) string, line string, p ...interface{}) {
+const (
+	logLevelOff = iota
+	logLevelFatal
+	logLevelError
+	logLevelWarning
+	logLevelInfo
+	logLevelDebug
+	logLevelVerbose
+	logLevelAll
+)
+
+func dubLog(group string, logLevel int, colorFunc func(string, ...interface{}) string, line string, p ...interface{}) {
 	colorPrefix := group
 	switch strings.ToLower(group) {
 
@@ -77,7 +88,11 @@ func dubLog(group string, colorFunc func(string, ...interface{}) string, line st
 		colorPrefix = color.HiGreenString("[Spotify]")
 		break
 	}
-	log.Println(colorPrefix, colorFunc(line, p...))
+
+	if logLevel <= config.LogLevel {
+		//TODO: trace file+line
+		log.Println(colorPrefix, colorFunc(line, p...))
+	}
 
 	if bot != nil && botReady {
 		for _, channelConfig := range config.OutputChannels {
@@ -85,10 +100,10 @@ func dubLog(group string, colorFunc func(string, ...interface{}) string, line st
 				outputToChannel := func(channel string) {
 					if channel != "" {
 						if !hasPerms(channel, discordgo.PermissionSendMessages) {
-							dubLog("Self", color.HiRedString, fmtBotSendPerm, channel)
+							dubLog("Log", logLevelError, color.HiRedString, fmtBotSendPerm, channel)
 						} else {
 							if _, err := bot.ChannelMessageSend(channel, fmt.Sprintf("```%s | [%s] %s```", time.Now().Format(time.RFC3339), group, fmt.Sprintf(line, p...))); err != nil {
-								dubLog("Self", color.HiRedString, "Failed to send message...\t%s", err)
+								dubLog("Log", logLevelError, color.HiRedString, "Failed to send message...\t%s", err)
 							}
 						}
 					}

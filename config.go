@@ -44,24 +44,29 @@ var (
 
 func defaultConfiguration() configuration {
 	return configuration{
-		// Required
+
+		// Credentials
 		Credentials: configurationCredentials{
 			Token: placeholderToken,
 		},
+
 		// Setup
-		Admins:              []string{},
-		DebugOutput:         false,
-		MessageOutput:       true,
 		CommandPrefix:       cdCommandPrefix,
-		DiscordCheckPerms:   true,
-		DiscordTimeout:      180,
+		LogLevel:            logLevelInfo,
 		ExitOnBadConnection: false,
-		DiscordLogLevel:     discordgo.LogError,
+
 		// Appearance
 		PresenceEnabled: true,
 		PresenceStatus:  &cdPresenceStatus,
 		PresenceType:    cdPresenceType,
 		PresenceLabel:   discordgo.ActivityType(discordgo.ActivityTypeListening),
+
+		// Discord
+		DiscordAdmins:     []string{},
+		DiscordLogLevel:   discordgo.LogError,
+		DiscordTimeout:    180,
+		DiscordCheckPerms: true,
+		MessageOutput:     true,
 	}
 }
 
@@ -72,14 +77,9 @@ type configuration struct {
 	Credentials configurationCredentials `json:"credentials"` // required
 
 	// Setup
-	Admins              []string `json:"admins"`                        // optional
-	CommandPrefix       string   `json:"commandPrefix"`                 // optional, defaults
-	DebugOutput         bool     `json:"debugOutput"`                   // optional, defaults
-	MessageOutput       bool     `json:"messageOutput"`                 // optional, defaults
-	DiscordLogLevel     int      `json:"discordLogLevel,omitempty"`     // optional, defaults
-	DiscordTimeout      int      `json:"discordTimeout,omitempty"`      // optional, defaults
-	DiscordCheckPerms   bool     `json:"discordCheckPerms,omitempty"`   // optional, defaults
-	ExitOnBadConnection bool     `json:"exitOnBadConnection,omitempty"` // optional, defaults
+	CommandPrefix       string `json:"commandPrefix"`                 // optional, defaults
+	LogLevel            int    `json:"logLevel,omitempty"`            // optional, defaults
+	ExitOnBadConnection bool   `json:"exitOnBadConnection,omitempty"` // optional, defaults
 	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
 
 	// Appearance
@@ -90,6 +90,11 @@ type configuration struct {
 	//EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
 
 	// Discord
+	DiscordAdmins     []string `json:"discordAdmins"`               // optional
+	DiscordLogLevel   int      `json:"discordLogLevel,omitempty"`   // optional, defaults
+	DiscordTimeout    int      `json:"discordTimeout,omitempty"`    // optional, defaults
+	DiscordCheckPerms bool     `json:"discordCheckPerms,omitempty"` // optional, defaults
+	MessageOutput     bool     `json:"messageOutput"`               // optional, defaults
 	//All                  *configurationTarget  `json:"all,omitempty"`                  // optional, defaults
 	//AllBlacklistChannels *[]string             `json:"allBlacklistChannels,omitempty"` // optional
 	//AllBlacklistServers  *[]string             `json:"allBlacklistServers,omitempty"`  // optional
@@ -165,11 +170,11 @@ func loadConfig() {
 		configFileC = false
 	}
 	// .
-	dubLog("Settings", color.YellowString, "Loading from \"%s\"...", configFile)
+	dubLog("Settings", logLevelInfo, color.YellowString, "Loading from \"%s\"...", configFile)
 	// Load settings
 	configContent, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		dubLog("Settings", color.HiRedString, "Failed to open file...\t%s", err)
+		dubLog("Settings", logLevelFatal, color.HiRedString, "Failed to open file...\t%s", err)
 		//createConfig()
 		properExit()
 	} else {
@@ -189,8 +194,8 @@ func loadConfig() {
 			err = json.Unmarshal([]byte(fixed), &newConfig)
 		}
 		if err != nil {
-			dubLog("Settings", color.HiRedString, "Failed to parse settings file...\t%s", err)
-			dubLog("Settings", color.MagentaString, "Please ensure you're following proper JSON format syntax.")
+			dubLog("Settings", logLevelFatal, color.HiRedString, "Failed to parse settings file...\t%s", err)
+			dubLog("Settings", logLevelWarning, color.MagentaString, "Please ensure you're following proper JSON format syntax.")
 			properExit()
 		}
 		// Constants
@@ -208,8 +213,8 @@ func loadConfig() {
 				err = json.Unmarshal([]byte(fixed), &newConfig)
 			}
 			if err != nil {
-				dubLog("Settings", color.HiRedString, "Failed to re-parse settings file after replacing constants...\t%s", err)
-				dubLog("Settings", color.MagentaString, "Please ensure you're following proper JSON format syntax.")
+				dubLog("Settings", logLevelFatal, color.HiRedString, "Failed to re-parse settings file after replacing constants...\t%s", err)
+				dubLog("Settings", logLevelWarning, color.MagentaString, "Please ensure you're following proper JSON format syntax.")
 				properExit()
 			}
 			newConfig.Constants = nil
@@ -217,7 +222,7 @@ func loadConfig() {
 		config = newConfig
 
 		// Debug Output
-		if config.DebugOutput {
+		if logLevelDebug <= config.LogLevel {
 			dupeConfig := config
 			if dupeConfig.Credentials.Token != "" && dupeConfig.Credentials.Token != placeholderToken {
 				dupeConfig.Credentials.Token = "STRIPPED_FOR_OUTPUT"
@@ -230,17 +235,17 @@ func loadConfig() {
 			}
 			s, err := json.MarshalIndent(dupeConfig, "", "\t")
 			if err != nil {
-				dubLog("Debug", color.HiRedString, "Failed to output...\t%s", err)
+				dubLog("Debug", logLevelDebug, color.HiRedString, "Failed to output...\t%s", err)
 			} else {
-				dubLog("Debug", color.HiYellowString, "Loaded Settings:\n%s", string(s))
+				dubLog("Debug", logLevelDebug, color.HiYellowString, "Loaded Settings:\n%s", string(s))
 			}
 		}
 
 		// Credentials Check
 		if config.Credentials.Token == "" || config.Credentials.Token == placeholderToken {
-			dubLog("Discord", color.HiRedString, "No valid discord login found. Token is invalid...")
-			dubLog("Discord", color.HiYellowString, "Please save your credentials & info into \"%s\" then restart...", configFile)
-			dubLog("Discord", color.MagentaString, "If your credentials are already properly saved, please ensure you're following proper JSON format syntax.")
+			dubLog("Discord", logLevelFatal, color.HiRedString, "No valid discord login found. Token is invalid...")
+			dubLog("Discord", logLevelWarning, color.HiYellowString, "Please save your credentials & info into \"%s\" then restart...", configFile)
+			dubLog("Discord", logLevelWarning, color.MagentaString, "If your credentials are already properly saved, please ensure you're following proper JSON format syntax.")
 			properExit()
 		}
 	}

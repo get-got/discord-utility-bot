@@ -9,8 +9,8 @@ import (
 )
 
 func reboot() {
-	dubLog("Main", color.HiGreenString, "Rebooting...")
+	dubLog("Main", logLevelInfo, color.HiGreenString, "Rebooting...")
 	if err := exec.Command("cmd", "/C", "shutdown", "/r").Run(); err != nil {
-		dubLog("Main", color.HiRedString, "Failed to initiate reboot:", err)
+		dubLog("Main", logLevelError, color.HiRedString, "Failed to initiate reboot:", err)
 	}
 }

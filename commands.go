@@ -18,7 +18,7 @@ const (
 )
 
 func cmderrUnpermittedServer(prefix string, ctx *exrouter.Context) {
-	dubLog(prefix, color.HiCyanString, "%s tried to use %s command in an unpermitted server (%s)", getUserIdentifier(*ctx.Msg.Author), ctx.Args[0], ctx.Msg.GuildID)
+	dubLog(prefix, logLevelWarning, color.HiCyanString, "%s tried to use %s command in an unpermitted server (%s)", getUserIdentifier(*ctx.Msg.Author), ctx.Args[0], ctx.Msg.GuildID)
 }
 
 func handleCommands() *exrouter.Route {
@@ -31,11 +31,13 @@ func handleCommands() *exrouter.Route {
 		if !isServerPermitted(ctx.Msg.GuildID) {
 			cmderrUnpermittedServer(logPrefixHere, ctx)
 		} else {
-			if hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
+			if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
+				dubLog(logPrefixHere, logLevelError, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+			} else {
 				beforePong := time.Now()
 				pong, err := ctx.Reply("Pong!")
 				if err != nil {
-					dubLog(logPrefixHere, color.HiRedString, "Error sending pong message:\t%s", err)
+					dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error sending pong message:\t%s", err)
 				} else {
 					afterPong := time.Now()
 					latency := bot.HeartbeatLatency().Milliseconds()
@@ -54,13 +56,11 @@ func handleCommands() *exrouter.Route {
 						})
 					}
 					// Log
-					dubLog(logPrefixHere, color.HiCyanString, "%s pinged bot - Latency: %dms, Roundtrip: %dms",
+					dubLog(logPrefixHere, logLevelInfo, color.HiCyanString, "%s pinged bot - Latency: %dms, Roundtrip: %dms",
 						getUserIdentifier(*ctx.Msg.Author),
 						latency,
 						roundtrip)
 				}
-			} else {
-				dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
 			}
 		}
 	}).Cat("Utility").Alias("test").Desc("Pings the bot.")
@@ -71,7 +71,7 @@ func handleCommands() *exrouter.Route {
 			cmderrUnpermittedServer(logPrefixHere, ctx)
 		} else {
 			if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
-				dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+				dubLog(logPrefixHere, logLevelError, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
 			} else {
 				text := ""
 				for _, cmd := range router.Routes {
@@ -86,9 +86,9 @@ func handleCommands() *exrouter.Route {
 				content := fmt.Sprintf("Use commands as ``\"%s<command> <arguments?>\"``\n```%s```\n%s",
 					config.CommandPrefix, text, projectRepoURL)
 				if _, err := replyEmbed(ctx.Msg, "Command — Help", content); err != nil {
-					dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+					dubLog(logPrefixHere, logLevelError, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
 				}
-				dubLog(logPrefixHere, color.HiCyanString, "%s asked for help", getUserIdentifier(*ctx.Msg.Author))
+				dubLog(logPrefixHere, logLevelInfo, color.HiCyanString, "%s asked for help", getUserIdentifier(*ctx.Msg.Author))
 			}
 		}
 
@@ -104,14 +104,14 @@ func handleCommands() *exrouter.Route {
 			cmderrUnpermittedServer(logPrefixHere, ctx)
 		} else {
 			if !isBotAdmin(ctx.Msg) {
-				dubLog(logPrefixHere, color.HiRedString, "%s attempted program exit but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+				dubLog(logPrefixHere, logLevelError, color.HiRedString, "%s attempted program exit but is not admin...", getUserIdentifier(*ctx.Msg.Author))
 			} else {
-				dubLog(logPrefixHere, color.HiCyanString, "%s commanded program exit; exiting in 15 seconds...", getUserIdentifier(*ctx.Msg.Author))
+				dubLog(logPrefixHere, logLevelInfo, color.HiCyanString, "%s commanded program exit; exiting in 15 seconds...", getUserIdentifier(*ctx.Msg.Author))
 				if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
-					dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+					dubLog(logPrefixHere, logLevelError, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
 				} else {
 					if _, err := replyEmbed(ctx.Msg, "Command — Exit", "Exiting bot program in 15 seconds..."); err != nil {
-						dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+						dubLog(logPrefixHere, logLevelError, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
 					}
 				}
 				properExit()
@@ -125,14 +125,14 @@ func handleCommands() *exrouter.Route {
 			cmderrUnpermittedServer(logPrefixHere, ctx)
 		} else {
 			if !isBotAdmin(ctx.Msg) {
-				dubLog(logPrefixHere, color.HiRedString, "%s attempted system reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+				dubLog(logPrefixHere, logLevelError, color.HiRedString, "%s attempted system reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
 			} else {
-				dubLog(logPrefixHere, color.HiGreenString, "%s commanded system reboot; rebooting in 10 seconds...", getUserIdentifier(*ctx.Msg.Author))
+				dubLog(logPrefixHere, logLevelInfo, color.HiGreenString, "%s commanded system reboot; rebooting in 10 seconds...", getUserIdentifier(*ctx.Msg.Author))
 				if !hasPerms(ctx.Msg.ChannelID, discordgo.PermissionSendMessages) {
-					dubLog(logPrefixHere, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
+					dubLog(logPrefixHere, logLevelError, color.HiRedString, fmtBotSendPerm, ctx.Msg.ChannelID)
 				} else {
 					if _, err := replyEmbed(ctx.Msg, "Command — Reboot", "Rebooting host system in 10 seconds..."); err != nil {
-						dubLog(logPrefixHere, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
+						dubLog(logPrefixHere, logLevelError, color.HiRedString, "Failed to send command embed message (requested by %s)...\t%s", getUserIdentifier(*ctx.Msg.Author), err)
 					}
 				}
 				time.Sleep(10 * time.Second)
@@ -175,7 +175,7 @@ func handleCommands() *exrouter.Route {
 			cmderrUnpermittedServer(logPrefixHere, ctx)
 		} else {
 			if spotifyClient == nil {
-				dubLog(logPrefixHere, color.RedString, "Bot is not connected to Spotify...")
+				dubLog(logPrefixHere, logLevelWarning, color.RedString, "Bot is not connected to Spotify...")
 			} else {
 				input := ctx.Args[1]
 				input_type := ""
@@ -189,7 +189,7 @@ func handleCommands() *exrouter.Route {
 					input_type = "playlist"
 				}
 				if input_type == "" {
-					dubLog(logPrefixHere, color.HiRedString, "Input is not a valid format...")
+					dubLog(logPrefixHere, logLevelWarning, color.HiRedString, "Input is not a valid format: \"\"...", input)
 				} else {
 					cleanedInput := input
 					if idx := strings.Index(cleanedInput, "?si="); idx != -1 {
@@ -218,7 +218,7 @@ func handleCommands() *exrouter.Route {
 						var artists []spotify.ID
 						playlist, err := spotifyClient.GetPlaylist(spotifyContext, spotify.ID(cleanedInput))
 						if err != nil {
-							dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify playlist: %s", err)
+							dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error fetching Spotify playlist: %s", err)
 						} else {
 							isArtistInStack := func(artist spotify.ID) bool {
 								for _, a := range artists {
@@ -238,7 +238,7 @@ func handleCommands() *exrouter.Route {
 							for _, a := range artists {
 								artist, err := spotifyClient.GetArtist(spotifyContext, a)
 								if err != nil {
-									dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify artist: %s", err)
+									dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error fetching Spotify artist: %s", err)
 								} else {
 									for _, genre := range artist.Genres {
 										// exists
@@ -283,7 +283,7 @@ func handleCommands() *exrouter.Route {
 								},
 							)
 							if err != nil {
-								dubLog(logPrefixHere, color.HiRedString, "Error sending command response message: %s", err)
+								dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error sending command response message: %s", err)
 							}
 						}
 					} else {
@@ -299,13 +299,13 @@ func handleCommands() *exrouter.Route {
 						} else if input_type == "album" {
 							album, err := spotifyClient.GetAlbum(spotifyContext, spotify.ID(cleanedInput))
 							if err != nil {
-								dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify album: %s", err)
+								dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error fetching Spotify album: %s", err)
 							}
 							artist_id = album.Artists[0].ID
 						} else if input_type == "track" {
 							track, err := spotifyClient.GetTrack(spotifyContext, spotify.ID(cleanedInput))
 							if err != nil {
-								dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify track: %s", err)
+								dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error fetching Spotify track: %s", err)
 							}
 							artist_id = track.Artists[0].ID
 						}
@@ -313,7 +313,7 @@ func handleCommands() *exrouter.Route {
 						if artist_id != "" {
 							artist, err := spotifyClient.GetArtist(spotifyContext, artist_id)
 							if err != nil {
-								dubLog(logPrefixHere, color.HiRedString, "Error fetching Spotify artist: %s", err)
+								dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error fetching Spotify artist: %s", err)
 							} else {
 								artist_name = artist.Name
 								artist_url = "https://open.spotify.com/artist/" + artist.ID.String()
@@ -352,7 +352,7 @@ func handleCommands() *exrouter.Route {
 							},
 						)
 						if err != nil {
-							dubLog(logPrefixHere, color.HiRedString, "Error sending command response message: %s", err)
+							dubLog(logPrefixHere, logLevelError, color.HiRedString, "Error sending command response message: %s", err)
 						}
 
 					}

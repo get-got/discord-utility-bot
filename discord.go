@@ -15,7 +15,7 @@ import (
 
 func isBotAdmin(m *discordgo.Message) bool {
 	// No Admins
-	if len(config.Admins) == 0 {
+	if len(config.DiscordAdmins) == 0 {
 		return true
 	}
 	// Bypass Check
@@ -26,7 +26,7 @@ func isBotAdmin(m *discordgo.Message) bool {
 		}
 	}
 	//
-	return stringInSlice(m.Author.ID, config.Admins)
+	return stringInSlice(m.Author.ID, config.DiscordAdmins)
 }
 
 func getUserIdentifier(usr discordgo.User) string {
@@ -57,7 +57,7 @@ func hasPerms(channelID string, permission int64) bool {
 			if err == nil {
 				return perms&permission == permission
 			}
-			dubLog("Discord", color.HiRedString, "Failed to check permissions (%d) for %s:\t%s", permission, channelID, err)
+			dubLog("Discord", logLevelError, color.HiRedString, "Failed to check permissions (%d) for %s:\t%s", permission, channelID, err)
 		}
 	}
 	return false
@@ -73,7 +73,7 @@ func dataKeyReplacement(input string) string {
 			{"{{ddgVersion}}", projectVersion},
 			{"{{apiVersion}}", discordgo.APIVersion},
 			{"{{numServers}}", fmt.Sprint(len(bot.State.Guilds))},
-			{"{{numAdmins}}", fmt.Sprint(len(config.Admins))},
+			{"{{numAdmins}}", fmt.Sprint(len(config.DiscordAdmins))},
 			{"{{timeNowShort}}", timeNow.Format("3:04pm")},
 			{"{{timeNowShortTZ}}", timeNow.Format("3:04pm MST")},
 			{"{{timeNowMid}}", timeNow.Format("3:04pm MST 1/2/2006")},
@@ -196,7 +196,7 @@ func replyEmbed(m *discordgo.Message, title string, description string) (*discor
 				},
 			)
 		}
-		dubLog("Discord", color.HiRedString, fmtBotSendPerm, m.ChannelID)
+		dubLog("Discord", logLevelError, color.HiRedString, fmtBotSendPerm, m.ChannelID)
 	}
 	return nil, nil
 }
