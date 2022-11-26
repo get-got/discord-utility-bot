@@ -101,11 +101,13 @@ func updateDiscordPresence() {
 		}
 		// Update
 		bot.UpdateStatusComplex(discordgo.UpdateStatusData{
-			Status: config.PresenceType,
-			Activities: []*discordgo.Activity{{
+			Game: &discordgo.Game{
 				Name: status,
-				Type: config.PresenceLabel,
-			}},
+				Type: discordgo.GameType(config.PresenceLabel),
+				//Details: statusDetails, // Only visible if real user
+				//State:   statusState,   // Only visible if real user
+			},
+			Status: config.PresenceType,
 		})
 	} else if config.PresenceType != string(discordgo.StatusOnline) {
 		bot.UpdateStatusComplex(discordgo.UpdateStatusData{

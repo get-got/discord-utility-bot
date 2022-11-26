@@ -26,4 +26,4 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 )
 
-replace github.com/bwmarrin/discordgo => github.com/get-got/discordgo v0.26.1-1
+replace github.com/bwmarrin/discordgo => github.com/get-got/discordgo v0.26.1-11

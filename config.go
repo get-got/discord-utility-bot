@@ -18,12 +18,17 @@ var (
 //#region Credentials
 
 var (
-	placeholderToken string = "REPLACE_WITH_YOUR_TOKEN_OR_DELETE_LINE"
+	placeholderToken    string = "REPLACE_WITH_YOUR_TOKEN_OR_DELETE_LINE"
+	placeholderEmail    string = "REPLACE_WITH_YOUR_EMAIL_OR_DELETE_LINE"
+	placeholderPassword string = "REPLACE_WITH_YOUR_PASSWORD_OR_DELETE_LINE"
 )
 
 type configurationCredentials struct {
 	// Login
-	Token string `json:"token,omitempty"` // required for bot token (this or login)
+	Token    string `json:"token,omitempty"`    // required for bot token (this or login)
+	Email    string `json:"email,omitempty"`    // required for login (this or token)
+	Password string `json:"password,omitempty"` // required for login (this or token)
+	UserBot  bool   `json:"userBot,omitempty"`  // required
 	// APIs
 	SpotifyClientID     string `json:"spotifyClientID,omitempty"`     // optional
 	SpotifyClientSecret string `json:"spotifyClientSecret,omitempty"` // optional
@@ -47,7 +52,9 @@ func defaultConfiguration() configuration {
 
 		// Credentials
 		Credentials: configurationCredentials{
-			Token: placeholderToken,
+			Token:    placeholderToken,
+			Email:    placeholderEmail,
+			Password: placeholderPassword,
 		},
 
 		// Setup
@@ -59,7 +66,7 @@ func defaultConfiguration() configuration {
 		PresenceEnabled: true,
 		PresenceStatus:  &cdPresenceStatus,
 		PresenceType:    cdPresenceType,
-		PresenceLabel:   discordgo.ActivityType(discordgo.ActivityTypeListening),
+		PresenceLabel:   discordgo.GameTypeListening,
 
 		// Discord
 		DiscordAdmins:     []string{},
@@ -83,10 +90,10 @@ type configuration struct {
 	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
 
 	// Appearance
-	PresenceEnabled bool                   `json:"presenceEnabled,omitempty"` // optional, defaults
-	PresenceStatus  *string                `json:"presenceStatus,omitempty"`  // optional, defaults
-	PresenceType    string                 `json:"presenceType,omitempty"`    // optional, defaults
-	PresenceLabel   discordgo.ActivityType `json:"presenceLabel,omitempty"`   // optional, defaults
+	PresenceEnabled bool               `json:"presenceEnabled,omitempty"` // optional, defaults
+	PresenceStatus  *string            `json:"presenceStatus,omitempty"`  // optional, defaults
+	PresenceType    string             `json:"presenceType,omitempty"`    // optional, defaults
+	PresenceLabel   discordgo.GameType `json:"presenceLabel,omitempty"`   // optional, defaults
 	//EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
 
 	// Discord
@@ -227,6 +234,12 @@ func loadConfig() {
 			if dupeConfig.Credentials.Token != "" && dupeConfig.Credentials.Token != placeholderToken {
 				dupeConfig.Credentials.Token = "STRIPPED_FOR_OUTPUT"
 			}
+			if dupeConfig.Credentials.Email != "" && dupeConfig.Credentials.Email != placeholderEmail {
+				dupeConfig.Credentials.Email = "STRIPPED_FOR_OUTPUT"
+			}
+			if dupeConfig.Credentials.Password != "" && dupeConfig.Credentials.Password != placeholderPassword {
+				dupeConfig.Credentials.Password = "STRIPPED_FOR_OUTPUT"
+			}
 			if dupeConfig.Credentials.SpotifyClientID != "" {
 				dupeConfig.Credentials.SpotifyClientID = "STRIPPED_FOR_OUTPUT"
 			}
@@ -242,8 +255,10 @@ func loadConfig() {
 		}
 
 		// Credentials Check
-		if config.Credentials.Token == "" || config.Credentials.Token == placeholderToken {
-			dubLog("Discord", logLevelFatal, color.HiRedString, "No valid discord login found. Token is invalid...")
+		if (config.Credentials.Token == "" || config.Credentials.Token == placeholderToken) &&
+			(config.Credentials.Email == "" || config.Credentials.Email == placeholderEmail) &&
+			(config.Credentials.Password == "" || config.Credentials.Password == placeholderPassword) {
+			dubLog("Discord", logLevelFatal, color.HiRedString, "No valid discord login found. Login is invalid...")
 			dubLog("Discord", logLevelWarning, color.HiYellowString, "Please save your credentials & info into \"%s\" then restart...", configFile)
 			dubLog("Discord", logLevelWarning, color.MagentaString, "If your credentials are already properly saved, please ensure you're following proper JSON format syntax.")
 			properExit()

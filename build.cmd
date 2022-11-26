@@ -1,1 +1,1 @@
-go build
+go mod download all && go mod tidy && go build && discord-downloader-go.exe
