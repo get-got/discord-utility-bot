@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os/exec"
 	"sort"
 	"strings"
 	"time"
@@ -92,11 +94,39 @@ func handleCommands() *exrouter.Route {
 			}
 		}
 
-	}).Cat("Utility").Alias("h").Desc("Help.")
+	}).Cat("Utility").Alias("h").Desc("Help.. please...")
 
 	//#endregion
 
 	//#region Admin Commands
+
+	router.On("execute", func(ctx *exrouter.Context) {
+		logPrefixHere := color.CyanString("commands:execute")
+		if !isServerPermitted(ctx.Msg.GuildID) {
+			cmderrUnpermittedServer(logPrefixHere, ctx)
+		} else {
+			if !isBotAdmin(ctx.Msg) {
+				dubLog(logPrefixHere, logLevelError, color.HiRedString, "%s attempted cli execution but is not admin...", getUserIdentifier(*ctx.Msg.Author))
+			} else {
+				var cmd *exec.Cmd
+				input := ctx.Args.After(1)
+				if strings.Contains(input, "sudo") {
+					cmd = exec.Command("/bin/sh", "-c", input)
+				} else {
+					cmd = exec.Command(input)
+				}
+				stdout, err := cmd.CombinedOutput()
+				if err != nil {
+					log.Println(err)
+					ctx.Reply(fmt.Sprintf("```[ERROR]: %s```", err))
+				} else {
+					log.Println(string(stdout))
+					ctx.Reply(fmt.Sprintf("```%s```", string(stdout)))
+				}
+			}
+		}
+
+	}).Cat("Admin").Alias("exec", "ex", "x").Desc("Command line execution.")
 
 	router.On("exit", func(ctx *exrouter.Context) {
 		logPrefixHere := "commands:exit"
@@ -117,7 +147,7 @@ func handleCommands() *exrouter.Route {
 				properExit()
 			}
 		}
-	}).Cat("Admin").Alias("reload", "kill").Desc("Exits this program.")
+	}).Cat("Admin").Alias("reload", "kill").Desc("[A] Exits this program.")
 
 	router.On("reboot", func(ctx *exrouter.Context) {
 		logPrefixHere := "commands:reboot"
@@ -139,7 +169,7 @@ func handleCommands() *exrouter.Route {
 				reboot()
 			}
 		}
-	}).Cat("Admin").Alias("restart", "shutdown").Desc("Restarts the server.")
+	}).Cat("Admin").Alias("restart", "shutdown").Desc("[A] Restarts the server.")
 
 	//#endregion
 
@@ -163,7 +193,7 @@ func handleCommands() *exrouter.Route {
 			//
 		}
 
-	}).Cat("Discord").Desc("<WIP!!> Dump server emojis.")
+	}).Cat("Discord").Desc("<WIP!!> [A] Dump server emojis.")
 
 	//#endregion
 
@@ -177,6 +207,13 @@ func handleCommands() *exrouter.Route {
 			if spotifyClient == nil {
 				dubLog(logPrefixHere, logLevelWarning, color.RedString, "Bot is not connected to Spotify...")
 			} else {
+				if checkSpotify() == nil {
+					if spotErr := loadSpotifyAPI(); spotErr != nil {
+						dubLog(logPrefixHere, logLevelWarning, color.RedString,
+							"Bot failed to reconnect to Spotify...\t%s", spotErr)
+					}
+				}
+
 				input := ctx.Args[1]
 				input_type := ""
 				if strings.Contains(input, "/artist/") {
@@ -398,16 +435,6 @@ func handleCommands() *exrouter.Route {
 		}
 
 	}).Cat("Misc").Desc("<WIP!!> Plex Status.")
-
-	router.On("webm", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("commands:webm")
-		if !isServerPermitted(ctx.Msg.GuildID) {
-			cmderrUnpermittedServer(logPrefixHere, ctx)
-		} else {
-			//
-		}
-
-	}).Cat("Misc").Alias("mp4").Desc("<WIP!!> WEBM to MP4 Conversion.")
 
 	//#endregion
 

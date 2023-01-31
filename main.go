@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -13,9 +13,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
-	"github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
-	"golang.org/x/oauth2/clientcredentials"
 )
 
 /*
@@ -41,11 +38,10 @@ var (
 	user     *discordgo.User
 	dgr      *exrouter.Route
 	// General
-	loop                 chan os.Signal
-	timeLaunched         time.Time
-	timePresenceUpdated  time.Time
-	timeConfigReloaded   time.Time
-	configReloadLastTime time.Time
+	loop                chan os.Signal
+	timeLaunched        time.Time
+	timePresenceUpdated time.Time
+	timeConfigReloaded  time.Time
 )
 
 func init() {
@@ -143,7 +139,7 @@ func main() {
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					// It double-fires the event without time check, might depend on OS but this works anyways
-					if time.Now().Sub(configReloadLastTime).Milliseconds() > 1 {
+					if time.Since(timeConfigReloaded).Milliseconds() > 1 {
 						time.Sleep(1 * time.Second)
 						dubLog("Settings", logLevelInfo, color.YellowString, "Detected changes in \"%s\", reloading...", configFile)
 						loadConfig()
@@ -151,7 +147,7 @@ func main() {
 
 						updateDiscordPresence()
 					}
-					configReloadLastTime = time.Now()
+					timeConfigReloaded = time.Now()
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -174,35 +170,8 @@ func main() {
 	dubLog("Main", logLevelInfo, color.HiRedString, "Exiting...")
 }
 
-var (
-	spotifyClient  *spotify.Client
-	spotifyContext context.Context
-)
-
 func loadAPIs() {
-	// Spotify
-	if config.Credentials.SpotifyClientID != "" && config.Credentials.SpotifyClientSecret != "" {
-
-		dubLog("Spotify", logLevelInfo, color.MagentaString, "Connecting to Spotify API...")
-		spotifyConfig := &clientcredentials.Config{
-			ClientID:     config.Credentials.SpotifyClientID,
-			ClientSecret: config.Credentials.SpotifyClientSecret,
-			TokenURL:     spotifyauth.TokenURL,
-		}
-		spotifyContext = context.Background()
-		spotifyToken, err := spotifyConfig.Token(spotifyContext)
-		if err != nil {
-			dubLog("Spotify", logLevelError, color.HiRedString, "Error getting Spotify token: %s", err)
-		} else {
-			spotifyClient = spotify.New(spotifyauth.New().Client(spotifyContext, spotifyToken))
-			_, err = spotifyClient.GetCategories(spotifyContext)
-			if err != nil {
-				dubLog("Spotify", logLevelError, color.HiRedString, "Error connecting to Spotify: %s", err)
-			} else {
-				dubLog("Spotify", logLevelInfo, color.HiGreenString, "Connected to Spotify API!")
-			}
-		}
-	}
+	loadSpotifyAPI()
 }
 
 func botLogin() {
@@ -234,7 +203,7 @@ func botLogin() {
 		properExit()
 	}
 	bot.ShouldReconnectOnError = true
-	dur, err := time.ParseDuration(string(config.DiscordTimeout) + "s")
+	dur, err := time.ParseDuration(fmt.Sprint(config.DiscordTimeout) + "s")
 	if err != nil {
 		dur, _ = time.ParseDuration("180s")
 	}
