@@ -42,9 +42,10 @@ type configurationCredentials struct {
 //#region Configuration
 
 var (
-	cdCommandPrefix  string = "dub "
-	cdPresenceStatus string = "{{numServers}} servers"
-	cdPresenceType   string = string(discordgo.StatusOnline)
+	defConfig_CommandPrefix        string = "dub "
+	defConfig_GithubUpdateChecking bool   = true
+	defConfig_PresenceStatus       string = "{{numServers}} servers"
+	defConfig_PresenceType         string = string(discordgo.StatusOnline)
 )
 
 func defaultConfiguration() configuration {
@@ -58,14 +59,15 @@ func defaultConfiguration() configuration {
 		},
 
 		// Setup
-		CommandPrefix:       cdCommandPrefix,
-		LogLevel:            logLevelInfo,
-		ExitOnBadConnection: false,
+		CommandPrefix:        defConfig_CommandPrefix,
+		LogLevel:             logLevelInfo,
+		ExitOnBadConnection:  false,
+		GithubUpdateChecking: defConfig_GithubUpdateChecking,
 
 		// Appearance
 		PresenceEnabled: true,
-		PresenceStatus:  &cdPresenceStatus,
-		PresenceType:    cdPresenceType,
+		PresenceStatus:  &defConfig_PresenceStatus,
+		PresenceType:    defConfig_PresenceType,
 		PresenceLabel:   discordgo.GameTypeListening,
 
 		// Discord
@@ -84,10 +86,10 @@ type configuration struct {
 	Credentials configurationCredentials `json:"credentials"` // required
 
 	// Setup
-	CommandPrefix       string `json:"commandPrefix"`                 // optional, defaults
-	LogLevel            int    `json:"logLevel,omitempty"`            // optional, defaults
-	ExitOnBadConnection bool   `json:"exitOnBadConnection,omitempty"` // optional, defaults
-	//GithubUpdateChecking           bool                        `json:"githubUpdateChecking"`                     // optional, defaults
+	CommandPrefix        string `json:"commandPrefix"`                 // optional, defaults
+	LogLevel             int    `json:"logLevel,omitempty"`            // optional, defaults
+	ExitOnBadConnection  bool   `json:"exitOnBadConnection,omitempty"` // optional, defaults
+	GithubUpdateChecking bool   `json:"githubUpdateChecking"`          // optional, defaults
 
 	// Appearance
 	PresenceEnabled bool               `json:"presenceEnabled,omitempty"` // optional, defaults

@@ -56,6 +56,18 @@ func init() {
 	log.SetOutput(color.Output)
 	dubLog("Main", logLevelInfo, color.HiCyanString, "Welcome to %s v%s", projectName, projectVersion)
 	dubLog("Version", logLevelInfo, color.CyanString, "%s / discord-go v%s / Discord API v%s", runtime.Version(), discordgo.VERSION, discordgo.APIVersion)
+
+	// Github Update Check
+	if config.GithubUpdateChecking {
+		if !isLatestGithubRelease() {
+			dubLog("Version", logLevelInfo, color.HiCyanString, "***\tUPDATE AVAILABLE\t***")
+			dubLog("Version", logLevelInfo, color.CyanString, projectReleaseURL)
+			dubLog("Version", logLevelInfo, color.HiCyanString, "*** See changelog for information ***")
+			dubLog("Version", logLevelInfo, color.HiCyanString, "CHECK ALL CHANGELOGS SINCE YOUR LAST UPDATE")
+			dubLog("Version", logLevelInfo, color.HiCyanString, "SOME SETTINGS MAY NEED TO BE UPDATED")
+			time.Sleep(5 * time.Second)
+		}
+	}
 }
 
 func main() {

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
+	"github.com/hashicorp/go-version"
 )
 
 func uptime() time.Duration {
@@ -32,6 +35,72 @@ func stringInSlice(a string, list []string) bool {
 	}
 	return false
 }
+
+//#region Requests
+
+func getJSON(url string, target interface{}) error {
+	r, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
+}
+
+func getJSONwithHeaders(url string, target interface{}, headers map[string]string) error {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	r, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
+}
+
+//#endregion
+
+//#region Github Release Checking
+
+type githubReleaseApiObject struct {
+	TagName string `json:"tag_name"`
+}
+
+func isLatestGithubRelease() bool {
+	githubReleaseApiObject := new(githubReleaseApiObject)
+	err := getJSON(projectReleaseApiURL, githubReleaseApiObject)
+	if err != nil {
+		dubLog("Version", logLevelInfo, color.RedString, "Error fetching current Release JSON: %s", err)
+		return true
+	}
+
+	thisVersion, err := version.NewVersion(projectVersion)
+	if err != nil {
+		dubLog("Version", logLevelInfo, color.RedString, "Error parsing current version: %s", err)
+		return true
+	}
+
+	latestVersion, err := version.NewVersion(githubReleaseApiObject.TagName)
+	if err != nil {
+		dubLog("Version", logLevelInfo, color.RedString, "Error parsing latest version: %s", err)
+		return true
+	}
+
+	if latestVersion.GreaterThan(thisVersion) {
+		return false
+	}
+
+	return true
+}
+
+//#endregion
 
 /* logging system:
 
