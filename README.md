@@ -1,3 +1,9 @@
 # discord-utility-bot
  
-work in progress, mostly for personal use to replace messy python scripts.
+(WIP!!!) Utility functions, mostly tailored to my particular uses.
+
+### DISCORD CHANNEL COMMANDS
+
+- Spotify Genre Lookup
+- System Reboot
+- Shell Execution
