@@ -15,22 +15,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-/*
-
-ROADMAP BEFORE RETIRING PYTHON BOT:
-- Admin & Channel/Server Restriction
-- Fluidly construct embeds, message error checking
-- SG
-- Reboot
-- Exit
-- Help
-- Info
-
-FUTURE ROADMAP:
-- Channel Wiper functionality
-
-*/
-
 var (
 	// Bot
 	bot      *discordgo.Session
