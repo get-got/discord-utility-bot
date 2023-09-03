@@ -44,8 +44,7 @@ type configurationCredentials struct {
 var (
 	defConfig_CommandPrefix        string = "dub "
 	defConfig_GithubUpdateChecking bool   = true
-	defConfig_PresenceStatus       string = "{{numServers}} servers"
-	defConfig_PresenceType         string = string(discordgo.StatusOnline)
+	defConfig_Presence_Enabled     bool   = true
 )
 
 func defaultConfiguration() configuration {
@@ -65,10 +64,36 @@ func defaultConfiguration() configuration {
 		GithubUpdateChecking: defConfig_GithubUpdateChecking,
 
 		// Appearance
-		PresenceEnabled: true,
-		PresenceStatus:  &defConfig_PresenceStatus,
-		PresenceType:    defConfig_PresenceType,
-		PresenceLabel:   discordgo.GameTypeListening,
+		Presence: []configurationPresence{
+			{
+				Enabled:  &defConfig_Presence_Enabled,
+				Type:     string(discordgo.StatusOnline),
+				Label:    0,
+				Status:   "Discord Utility Bot",
+				Duration: 10,
+			},
+			{
+				Enabled:  &defConfig_Presence_Enabled,
+				Type:     string(discordgo.StatusOnline),
+				Label:    0,
+				Status:   "DUB {{dubVersion}}",
+				Duration: 15,
+			},
+			{
+				Enabled:  &defConfig_Presence_Enabled,
+				Type:     string(discordgo.StatusDoNotDisturb),
+				Label:    2,
+				Status:   "{{numServers}} servers",
+				Duration: 30,
+			},
+			{
+				Enabled:  &defConfig_Presence_Enabled,
+				Type:     string(discordgo.StatusIdle),
+				Label:    3,
+				Status:   "for {{uptime}}",
+				Duration: 30,
+			},
+		},
 
 		// Discord
 		DiscordAdmins:     []string{},
@@ -79,6 +104,14 @@ func defaultConfiguration() configuration {
 	}
 }
 
+type configurationPresence struct {
+	Enabled  *bool              `json:"enabled"`
+	Type     string             `json:"type"`     // Online, Idle, DND, Invisible
+	Label    discordgo.GameType `json:"label"`    // Playing[0], Streaming[1], Listening[2], Watching[3], Custom[4,DOESNT WORK]
+	Status   string             `json:"status"`   // text
+	Duration int                `json:"duration"` // seconds
+}
+
 type configuration struct {
 	Constants map[string]string `json:"_constants,omitempty"`
 
@@ -86,24 +119,21 @@ type configuration struct {
 	Credentials configurationCredentials `json:"credentials"` // required
 
 	// Setup
-	CommandPrefix        string `json:"commandPrefix"`                 // optional, defaults
-	LogLevel             int    `json:"logLevel,omitempty"`            // optional, defaults
-	ExitOnBadConnection  bool   `json:"exitOnBadConnection,omitempty"` // optional, defaults
-	GithubUpdateChecking bool   `json:"githubUpdateChecking"`          // optional, defaults
+	CommandPrefix        string `json:"commandPrefix"`        // optional, defaults
+	LogLevel             int    `json:"logLevel"`             // optional, defaults
+	ExitOnBadConnection  bool   `json:"exitOnBadConnection"`  // optional, defaults
+	GithubUpdateChecking bool   `json:"githubUpdateChecking"` // optional, defaults
 
 	// Appearance
-	PresenceEnabled bool               `json:"presenceEnabled,omitempty"` // optional, defaults
-	PresenceStatus  *string            `json:"presenceStatus,omitempty"`  // optional, defaults
-	PresenceType    string             `json:"presenceType,omitempty"`    // optional, defaults
-	PresenceLabel   discordgo.GameType `json:"presenceLabel,omitempty"`   // optional, defaults
-	//EmbedColor      *string            `json:"embedColor,omitempty"`   // optional, defaults to role if undefined, then defaults random if no role color
+	Presence []configurationPresence `json:"presence"`
+	//EmbedColor      *string            `json:"embedColor"`   // optional, defaults to role if undefined, then defaults random if no role color
 
 	// Discord
-	DiscordAdmins     []string `json:"discordAdmins"`               // optional
-	DiscordLogLevel   int      `json:"discordLogLevel,omitempty"`   // optional, defaults
-	DiscordTimeout    int      `json:"discordTimeout,omitempty"`    // optional, defaults
-	DiscordCheckPerms bool     `json:"discordCheckPerms,omitempty"` // optional, defaults
-	MessageOutput     bool     `json:"messageOutput"`               // optional, defaults
+	DiscordAdmins     []string `json:"discordAdmins"`     // optional
+	DiscordLogLevel   int      `json:"discordLogLevel"`   // optional, defaults
+	DiscordTimeout    int      `json:"discordTimeout"`    // optional, defaults
+	DiscordCheckPerms bool     `json:"discordCheckPerms"` // optional, defaults
+	MessageOutput     bool     `json:"messageOutput"`     // optional, defaults
 	//All                  *configurationTarget  `json:"all,omitempty"`                  // optional, defaults
 	//AllBlacklistChannels *[]string             `json:"allBlacklistChannels,omitempty"` // optional
 	//AllBlacklistServers  *[]string             `json:"allBlacklistServers,omitempty"`  // optional
@@ -115,7 +145,7 @@ type configurationTarget struct {
 	Server  string    `json:"server,omitempty"`  // used for config.PermittedServers
 	Servers *[]string `json:"servers,omitempty"` // ---> alternative to Server
 
-	UnlockCommands bool `json:"unlockCommands,omitempty"` // optional, defaults
+	UnlockCommands bool `json:"unlockCommands"` // optional, defaults
 }
 
 type configurationOutput struct {

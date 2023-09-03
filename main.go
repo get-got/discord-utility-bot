@@ -67,14 +67,10 @@ func main() {
 	//#region Background Tasks
 
 	// Tickers
-	ticker5m := time.NewTicker(5 * time.Minute)
 	ticker1m := time.NewTicker(1 * time.Minute)
 	go func() {
 		for {
 			select {
-			case <-ticker5m.C:
-				// If bot experiences connection interruption the status will go blank until updated by message, this fixes that
-				updateDiscordPresence()
 			case <-ticker1m.C:
 				doReconnect := func() {
 					dubLog("Discord", logLevelInfo, color.YellowString, "Closing Discord connections...")
@@ -128,8 +124,6 @@ func main() {
 						dubLog("Settings", logLevelInfo, color.YellowString, "Detected changes in \"%s\", reloading...", configFile)
 						loadConfig()
 						dubLog("Settings", logLevelInfo, color.HiYellowString, "Reloaded...")
-
-						updateDiscordPresence()
 					}
 					timeConfigReloaded = time.Now()
 				}
@@ -212,6 +206,38 @@ func botLogin() {
 	bot.AddHandler(messageUpdate)
 
 	// Start Presence
-	timePresenceUpdated = time.Now()
-	updateDiscordPresence()
+	if config.Presence != nil && len(config.Presence) > 0 {
+		go func() {
+			for {
+				// Rotate Presences
+				for _, presence := range config.Presence {
+					enabled := false
+					if presence.Enabled == nil {
+						enabled = true
+					} else {
+						enabled = *presence.Enabled
+					}
+					if enabled {
+						if presence.Status == "" {
+							bot.UpdateStatusComplex(discordgo.UpdateStatusData{
+								Status: presence.Type,
+							})
+						} else {
+							bot.UpdateStatusComplex(discordgo.UpdateStatusData{
+								Game: &discordgo.Game{
+									Name: dataKeyReplacement(presence.Status),
+									Type: discordgo.GameType(presence.Label),
+								},
+								Status: presence.Type,
+							})
+						}
+						if presence.Duration == 0 {
+							presence.Duration = 30
+						}
+						time.Sleep(time.Duration(presence.Duration * int(time.Second)))
+					}
+				}
+			}
+		}()
+	}
 }

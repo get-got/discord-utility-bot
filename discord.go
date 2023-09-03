@@ -70,7 +70,7 @@ func dataKeyReplacement(input string) string {
 		keys := [][]string{
 			{"{{goVersion}}", runtime.Version()},
 			{"{{dgVersion}}", discordgo.VERSION},
-			{"{{ddgVersion}}", projectVersion},
+			{"{{dubVersion}}", projectVersion},
 			{"{{apiVersion}}", discordgo.APIVersion},
 			{"{{numServers}}", fmt.Sprint(len(bot.State.Guilds))},
 			{"{{numAdmins}}", fmt.Sprint(len(config.DiscordAdmins))},
@@ -91,29 +91,6 @@ func dataKeyReplacement(input string) string {
 		}
 	}
 	return input
-}
-
-func updateDiscordPresence() {
-	if config.PresenceEnabled {
-		status := *config.PresenceStatus
-		if status != "" {
-			status = dataKeyReplacement(status)
-		}
-		// Update
-		bot.UpdateStatusComplex(discordgo.UpdateStatusData{
-			Game: &discordgo.Game{
-				Name: status,
-				Type: discordgo.GameType(config.PresenceLabel),
-				//Details: statusDetails, // Only visible if real user
-				//State:   statusState,   // Only visible if real user
-			},
-			Status: config.PresenceType,
-		})
-	} else if config.PresenceType != string(discordgo.StatusOnline) {
-		bot.UpdateStatusComplex(discordgo.UpdateStatusData{
-			Status: config.PresenceType,
-		})
-	}
 }
 
 //#region Embeds
