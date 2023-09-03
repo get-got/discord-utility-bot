@@ -173,30 +173,6 @@ func handleCommands() *exrouter.Route {
 
 	//#endregion
 
-	//#region Discord
-
-	router.On("emoji", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("commands:emoji")
-		if !isServerPermitted(ctx.Msg.GuildID) {
-			cmderrUnpermittedServer(logPrefixHere, ctx)
-		} else {
-			//
-		}
-
-	}).Cat("Discord").Alias("e").Desc("<WIP!!> Emoji lookup.")
-
-	router.On("emojis", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("commands:emojis")
-		if !isServerPermitted(ctx.Msg.GuildID) {
-			cmderrUnpermittedServer(logPrefixHere, ctx)
-		} else {
-			//
-		}
-
-	}).Cat("Discord").Desc("<WIP!!> [A] Dump server emojis.")
-
-	//#endregion
-
 	//#region Spotify API
 
 	router.On("sg", func(ctx *exrouter.Context) {
@@ -397,30 +373,6 @@ func handleCommands() *exrouter.Route {
 			}
 		}
 	}).Cat("Spotify").Alias("spotifygenres", "spotgen").Desc("Spotify genre lookup by url.")
-
-	//#endregion
-
-	//#region Games
-
-	router.On("minecraft", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("commands:minecraft")
-		if !isServerPermitted(ctx.Msg.GuildID) {
-			cmderrUnpermittedServer(logPrefixHere, ctx)
-		} else {
-			//
-		}
-
-	}).Cat("Games").Desc("<WIP!!> Minecraft Server Status.")
-
-	router.On("valheim", func(ctx *exrouter.Context) {
-		logPrefixHere := color.CyanString("commands:valheim")
-		if !isServerPermitted(ctx.Msg.GuildID) {
-			cmderrUnpermittedServer(logPrefixHere, ctx)
-		} else {
-			//
-		}
-
-	}).Cat("Games").Desc("<WIP!!> Valheim Server Status.")
 
 	//#endregion
 
