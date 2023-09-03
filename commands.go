@@ -154,6 +154,7 @@ func handleCommands() *exrouter.Route {
 		if !isServerPermitted(ctx.Msg.GuildID) {
 			cmderrUnpermittedServer(logPrefixHere, ctx)
 		} else {
+			//TODO: show what syscall is being used if debug enabled
 			if !isBotAdmin(ctx.Msg) {
 				dubLog(logPrefixHere, logLevelError, color.HiRedString, "%s attempted system reboot but is not admin...", getUserIdentifier(*ctx.Msg.Author))
 			} else {
