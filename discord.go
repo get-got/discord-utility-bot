@@ -9,8 +9,10 @@ import (
 
 	"github.com/AvraamMavridis/randomcolor"
 	"github.com/bwmarrin/discordgo"
+	xsysinfo "github.com/elastic/go-sysinfo"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
+	"github.com/inhies/go-bytesize"
 )
 
 func isBotAdmin(m *discordgo.Message) bool {
@@ -83,6 +85,63 @@ func dataKeyReplacement(input string) string {
 			{"{{timeNowMid24}}", timeNow.Format("15:04 MST 2/1/2006")},
 			{"{{timeNowLong24}}", timeNow.Format("15:04:05 MST - 2 January, 2006")},
 			{"{{uptime}}", durafmt.ParseShort(time.Since(timeLaunched)).String()},
+		}
+		// Platform-Specific System Info
+		if strings.Contains(input, "lsys") || strings.Contains(input, "wsys") {
+			keys = append(keys, getPlatformKeys()...)
+		}
+		// Cross-Platform System Info
+		if strings.Contains(input, "xsys") {
+			sys, err := xsysinfo.Host()
+			if err == nil {
+				sysinf := sys.Info()
+				keys = append(keys, [][]string{
+					{"{{xsysArch}}", sysinf.Architecture},
+					{"{{xsysHostname}}", sysinf.Hostname},
+					{"{{xsysKernelVer}}", sysinf.KernelVersion},
+					{"{{xsysOsBuild}}", sysinf.OS.Build},
+					{"{{xsysOsCodename}}", sysinf.OS.Codename},
+					{"{{xsysOsFamily}}", sysinf.OS.Family},
+					{"{{xsysOsName}}", sysinf.OS.Name},
+					{"{{xsysOsPlatform}}", sysinf.OS.Platform},
+					{"{{xsysOsType}}", sysinf.OS.Type},
+					{"{{xsysOsVersion}}", sysinf.OS.Version},
+					{"{{xsysTZ}}", sysinf.Timezone},
+					{"{{xsysBootTimeShort}}", sysinf.BootTime.Format("3:04pm")},
+					{"{{xsysBootTimeShortTZ}}", sysinf.BootTime.Format("3:04pm MST")},
+					{"{{xsysBootTimeMid}}", sysinf.BootTime.Format("3:04pm MST 1/2/2006")},
+					{"{{xsysBootTimeLong}}", sysinf.BootTime.Format("3:04:05pm MST - January 2, 2006")},
+					{"{{xsysBootTimeShort24}}", sysinf.BootTime.Format("15:04")},
+					{"{{xsysBootTimeShortTZ24}}", sysinf.BootTime.Format("15:04 MST")},
+					{"{{xsysBootTimeMid24}}", sysinf.BootTime.Format("15:04 MST 2/1/2006")},
+					{"{{xsysBootTimeLong24}}", sysinf.BootTime.Format("15:04:05 MST - 2 January, 2006")},
+					{"{{xsysUptime}}", durafmt.ParseShort(sysinf.Uptime()).String()},
+				}...)
+				meminf, err := sys.Memory()
+				if err == nil {
+					keys = append(keys, [][]string{
+						{"{{xsysMemAvailable}}", bytesize.New(float64(meminf.Available)).String()},
+						{"{{xsysMemFree}}", bytesize.New(float64(meminf.Free)).String()},
+						{"{{xsysMemUsed}}", bytesize.New(float64(meminf.Used)).String()},
+						{"{{xsysMemTotal}}", bytesize.New(float64(meminf.Total)).String()},
+						{"{{xsysMemVirtualFree}}", bytesize.New(float64(meminf.VirtualFree)).String()},
+						{"{{xsysMemVirtualUsed}}", bytesize.New(float64(meminf.VirtualUsed)).String()},
+						{"{{xsysMemVirtualTotal}}", bytesize.New(float64(meminf.VirtualTotal)).String()},
+					}...)
+				} else if false {
+					//TODO: error message
+				}
+			} else if false {
+				//TODO: error message
+			}
+			procs, err := xsysinfo.Processes()
+			if err == nil {
+				keys = append(keys, [][]string{
+					{"{{xsysProcCount}}", fmt.Sprint(len(procs))},
+				}...)
+			} else if false {
+				//TODO: error message
+			}
 		}
 		for _, key := range keys {
 			if strings.Contains(input, key[0]) {

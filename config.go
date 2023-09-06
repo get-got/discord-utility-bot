@@ -45,6 +45,7 @@ var (
 	defConfig_CommandPrefix        string = "dub "
 	defConfig_GithubUpdateChecking bool   = true
 	defConfig_Presence_Enabled     bool   = true
+	defConfig_Presence_Details     string = "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>"
 )
 
 func defaultConfiguration() configuration {
@@ -70,7 +71,7 @@ func defaultConfiguration() configuration {
 				Type:          string(discordgo.StatusOnline),
 				Label:         discordgo.GameTypeGame,
 				Status:        "Discord Utility Bot",
-				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				StatusDetails: defConfig_Presence_Details,
 				Duration:      10,
 			},
 			{
@@ -78,23 +79,39 @@ func defaultConfiguration() configuration {
 				Type:          string(discordgo.StatusOnline),
 				Label:         discordgo.GameTypeGame,
 				Status:        "DUB {{dubVersion}}",
-				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				StatusDetails: defConfig_Presence_Details,
 				Duration:      15,
 			},
 			{
 				Enabled:       &defConfig_Presence_Enabled,
-				Type:          string(discordgo.StatusDoNotDisturb),
+				Type:          string(discordgo.StatusOnline),
+				Label:         discordgo.GameTypeGame,
+				Status:        "{{xsysMemUsed}} RAM used",
+				StatusDetails: defConfig_Presence_Details,
+				Duration:      15,
+			},
+			{
+				Enabled:       &defConfig_Presence_Enabled,
+				Type:          string(discordgo.StatusOnline),
 				Label:         discordgo.GameTypeListening,
 				Status:        "{{numServers}} servers",
-				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
-				Duration:      30,
+				StatusDetails: defConfig_Presence_Details,
+				Duration:      15,
 			},
 			{
 				Enabled:       &defConfig_Presence_Enabled,
 				Type:          string(discordgo.StatusIdle),
 				Label:         discordgo.GameTypeWatching,
 				Status:        "for {{uptime}}",
-				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				StatusDetails: defConfig_Presence_Details,
+				Duration:      30,
+			},
+			{
+				Enabled:       &defConfig_Presence_Enabled,
+				Type:          string(discordgo.StatusIdle),
+				Label:         discordgo.GameTypeWatching,
+				Status:        "sys for {{xsysUptime}}",
+				StatusDetails: defConfig_Presence_Details,
 				Duration:      30,
 			},
 		},

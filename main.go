@@ -13,6 +13,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
+	"github.com/inhies/go-bytesize"
 )
 
 var (
@@ -31,6 +32,7 @@ var (
 func init() {
 	loop = make(chan os.Signal, 1)
 	timeLaunched = time.Now()
+	bytesize.Format = "%.1f"
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.SetOutput(color.Output)

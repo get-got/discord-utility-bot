@@ -14,3 +14,7 @@ func reboot() {
 		dubLog("Main", logLevelError, color.HiRedString, "Failed to initiate reboot:", err)
 	}
 }
+
+func getPlatformKeys() [][]string {
+	return nil
+}
