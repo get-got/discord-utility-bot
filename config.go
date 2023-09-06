@@ -93,14 +93,6 @@ func defaultConfiguration() configuration {
 			{
 				Enabled:       &defConfig_Presence_Enabled,
 				Type:          string(discordgo.StatusOnline),
-				Label:         discordgo.GameTypeGame,
-				Status:        "{{xsysMemUsed}} RAM used",
-				StatusDetails: defConfig_Presence_Details,
-				Duration:      15,
-			},
-			{
-				Enabled:       &defConfig_Presence_Enabled,
-				Type:          string(discordgo.StatusOnline),
 				Label:         discordgo.GameTypeListening,
 				Status:        "{{numServers}} servers",
 				StatusDetails: defConfig_Presence_Details,
