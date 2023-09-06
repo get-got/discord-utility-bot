@@ -23,7 +23,7 @@ func getPlatformKeys() [][]string {
 	sys.GetSysInfo()
 	return [][]string{
 		{"{{lsysCpuModel}}", sys.CPU.Model},
-		{"{{lsysCpuSpeed}}", fmt.Sprintf("%0.1f GHz"sys.CPU.Speed/1000)},
+		{"{{lsysCpuSpeed}}", fmt.Sprintf("%0.1f GHz", sys.CPU.Speed/1000)},
 		{"{{lsysCpuCores}}", fmt.Sprint(sys.CPU.Cores)},
 		{"{{lsysCpuThreads}}", fmt.Sprint(sys.CPU.Threads)},
 	}
