@@ -66,32 +66,36 @@ func defaultConfiguration() configuration {
 		// Appearance
 		Presence: []configurationPresence{
 			{
-				Enabled:  &defConfig_Presence_Enabled,
-				Type:     string(discordgo.StatusOnline),
-				Label:    0,
-				Status:   "Discord Utility Bot",
-				Duration: 10,
+				Enabled:       &defConfig_Presence_Enabled,
+				Type:          string(discordgo.StatusOnline),
+				Label:         discordgo.GameTypeGame,
+				Status:        "Discord Utility Bot",
+				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				Duration:      10,
 			},
 			{
-				Enabled:  &defConfig_Presence_Enabled,
-				Type:     string(discordgo.StatusOnline),
-				Label:    0,
-				Status:   "DUB {{dubVersion}}",
-				Duration: 15,
+				Enabled:       &defConfig_Presence_Enabled,
+				Type:          string(discordgo.StatusOnline),
+				Label:         discordgo.GameTypeGame,
+				Status:        "DUB {{dubVersion}}",
+				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				Duration:      15,
 			},
 			{
-				Enabled:  &defConfig_Presence_Enabled,
-				Type:     string(discordgo.StatusDoNotDisturb),
-				Label:    2,
-				Status:   "{{numServers}} servers",
-				Duration: 30,
+				Enabled:       &defConfig_Presence_Enabled,
+				Type:          string(discordgo.StatusDoNotDisturb),
+				Label:         discordgo.GameTypeListening,
+				Status:        "{{numServers}} servers",
+				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				Duration:      30,
 			},
 			{
-				Enabled:  &defConfig_Presence_Enabled,
-				Type:     string(discordgo.StatusIdle),
-				Label:    3,
-				Status:   "for {{uptime}}",
-				Duration: 30,
+				Enabled:       &defConfig_Presence_Enabled,
+				Type:          string(discordgo.StatusIdle),
+				Label:         discordgo.GameTypeWatching,
+				Status:        "for {{uptime}}",
+				StatusDetails: "<< STATUS {{presenceCount}} @ {{presenceDuration}} >>",
+				Duration:      30,
 			},
 		},
 
@@ -105,11 +109,12 @@ func defaultConfiguration() configuration {
 }
 
 type configurationPresence struct {
-	Enabled  *bool              `json:"enabled"`
-	Type     string             `json:"type"`     // Online, Idle, DND, Invisible
-	Label    discordgo.GameType `json:"label"`    // Playing[0], Streaming[1], Listening[2], Watching[3], Custom[4,DOESNT WORK]
-	Status   string             `json:"status"`   // text
-	Duration int                `json:"duration"` // seconds
+	Enabled       *bool              `json:"enabled"`
+	Type          string             `json:"type"`          // Online, Idle, DND, Invisible
+	Label         discordgo.GameType `json:"label"`         // Playing[0], Streaming[1], Listening[2], Watching[3], Custom[4,DOESNT WORK]
+	Status        string             `json:"status"`        // text
+	StatusDetails string             `json:"statusDetails"` // text
+	Duration      int                `json:"duration"`      // seconds
 }
 
 type configuration struct {

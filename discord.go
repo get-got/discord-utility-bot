@@ -93,6 +93,56 @@ func dataKeyReplacement(input string) string {
 	return input
 }
 
+func runDiscordPresences() {
+	// Rotate Presences
+	for presenceKey, presence := range config.Presence {
+		enabled := false
+		if presence.Enabled == nil {
+			enabled = true
+		} else {
+			enabled = *presence.Enabled
+		}
+		if enabled {
+			if presence.Duration == 0 {
+				presence.Duration = 15
+			}
+			// Only change status type, no text.
+			if presence.Status == "" {
+				bot.UpdateStatusComplex(discordgo.UpdateStatusData{
+					Status: presence.Type,
+				})
+			} else {
+				// Format state (referring to it as details) - Presence-specific key replacements
+				dataKeyReplacementPresence := func(input string) string {
+					input = dataKeyReplacement(input)
+					if strings.Contains(input, "{{presenceCount}}") {
+						input = strings.ReplaceAll(input, "{{presenceCount}}",
+							fmt.Sprintf("%d/%d", presenceKey+1, len(config.Presence)))
+					}
+					if strings.Contains(input, "{{presenceDuration}}") {
+						input = strings.ReplaceAll(input, "{{presenceDuration}}",
+							shortenTime(durafmt.ParseShort(
+								time.Duration(presence.Duration*int(time.Second)),
+							).String()),
+						)
+					}
+					return input
+				}
+				// Update
+				bot.UpdateStatusComplex(discordgo.UpdateStatusData{
+					Game: &discordgo.Game{
+						Name:  dataKeyReplacementPresence(presence.Status),
+						State: dataKeyReplacementPresence(presence.StatusDetails),
+						Type:  discordgo.GameType(presence.Label),
+					},
+					Status: presence.Type,
+				})
+			}
+			time.Sleep(time.Duration(presence.Duration * int(time.Second)))
+		}
+	}
+}
+
 //#region Embeds
 
 func getEmbedColor(channelID string) int {

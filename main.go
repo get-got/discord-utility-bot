@@ -209,34 +209,7 @@ func botLogin() {
 	if config.Presence != nil && len(config.Presence) > 0 {
 		go func() {
 			for {
-				// Rotate Presences
-				for _, presence := range config.Presence {
-					enabled := false
-					if presence.Enabled == nil {
-						enabled = true
-					} else {
-						enabled = *presence.Enabled
-					}
-					if enabled {
-						if presence.Status == "" {
-							bot.UpdateStatusComplex(discordgo.UpdateStatusData{
-								Status: presence.Type,
-							})
-						} else {
-							bot.UpdateStatusComplex(discordgo.UpdateStatusData{
-								Game: &discordgo.Game{
-									Name: dataKeyReplacement(presence.Status),
-									Type: discordgo.GameType(presence.Label),
-								},
-								Status: presence.Type,
-							})
-						}
-						if presence.Duration == 0 {
-							presence.Duration = 30
-						}
-						time.Sleep(time.Duration(presence.Duration * int(time.Second)))
-					}
-				}
+				runDiscordPresences()
 			}
 		}()
 	}
