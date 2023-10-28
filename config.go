@@ -132,6 +132,10 @@ type configuration struct {
 	// Required
 	Credentials configurationCredentials `json:"credentials"` // required
 
+	// System
+	RebootScheduleSys *int `json:"rebootScheduleSys,omitempty"` // optional, hours
+	RebootScheduleBot *int `json:"rebootScheduleBot,omitempty"` // optional, hours
+
 	// Setup
 	CommandPrefix        string `json:"commandPrefix"`        // optional, defaults
 	LogLevel             int    `json:"logLevel"`             // optional, defaults

@@ -184,7 +184,7 @@ func handleCommands() *exrouter.Route {
 			if spotifyClient == nil {
 				dubLog(logPrefixHere, logLevelWarning, color.RedString, "Bot is not connected to Spotify...")
 			} else {
-				if checkSpotify() == nil {
+				if checkSpotify() == nil || time.Since(spotifyTimeConnected).Minutes() >= 60 {
 					if spotErr := loadSpotifyAPI(); spotErr != nil {
 						dubLog(logPrefixHere, logLevelWarning, color.RedString,
 							"Bot failed to reconnect to Spotify...\t%s", spotErr)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Necroforger/dgrouter/exrouter"
 	"github.com/bwmarrin/discordgo"
+	xsysinfo "github.com/elastic/go-sysinfo"
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
 	"github.com/inhies/go-bytesize"
@@ -135,6 +136,37 @@ func main() {
 				}
 				dubLog("Settings", logLevelError, color.HiRedString, "Watcher Error:\t%s", err)
 			}
+		}
+	}()
+
+	// Reboot Tickers
+	go func() {
+		for {
+			if config.RebootScheduleSys != nil {
+				hours := *config.RebootScheduleSys
+				if hours > 0 {
+					if sys, err := xsysinfo.Host(); err == nil {
+						sysinf := sys.Info()
+						if sysinf.Uptime().Hours() >= float64(hours) {
+							dubLog("Main", logLevelInfo, color.HiYellowString,
+								"Reboot schedule is set to restart the system every %d hours, rebooting in 30 seconds...", hours)
+							time.Sleep(30 * time.Second)
+							reboot()
+						}
+					}
+				}
+			}
+			if config.RebootScheduleBot != nil {
+				hours := *config.RebootScheduleBot
+				if hours > 0 {
+					if time.Since(timeLaunched).Hours() >= float64(hours) {
+						dubLog("Main", logLevelInfo, color.HiYellowString,
+							"Reboot schedule is set to exit the bot every %d hours, exiting...", hours)
+						properExit()
+					}
+				}
+			}
+			time.Sleep(45 * time.Second)
 		}
 	}()
 
