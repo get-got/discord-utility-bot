@@ -3,7 +3,7 @@ package main
 const (
 	projectName    = "discord-utility-bot"
 	projectLabel   = "DISCORD UTILITY BOT (DUB)"
-	projectVersion = "1.0.0-a.230905"
+	projectVersion = "1.0.0-a.231027"
 	projectIcon    = "https://cdn.discordapp.com/attachments/716861000745222164/1045416792530624724/trree.png"
 
 	projectRepo          = "get-got/discord-utility-bot"
